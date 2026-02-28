@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <title>FRC Driver Dashboard</title>
+
+  <link rel="stylesheet" href="./css/global.css">
+  <link rel="stylesheet" href="./css/stress/stress.css">
+  <link rel="stylesheet" href="./css/streamdeck/streamdeck.css">
+  
+</head>
+
+<body>
+
+  <div id="dashboard-root">
+
+    <header id="header">
+      <img src="assets/logo.png" alt="Team Logo" id="team-logo">
+      <h1>HYDRA #9163</h1>
+    </header>
+
+    <!-- ================= ROBOT STRESS ================= -->
+    <section id="robot-stress" class="dashboard-panel">
+      <h2>Robot Stress</h2>
+
+      <div id="stress-status" class="status-box">
+        --
+      </div>
+
+      <div class="metric">
+        <label>Battery Voltage</label>
+        <span id="battery-voltage">--.- V</span>
+      </div>
+
+      <div class="metric">
+        <label>Total Current</label>
+        <span id="total-current">--- A</span>
+      </div>
+
+      <div class="metric">
+        <label>Drivetrain Current</label>
+        <span id="drivetrain-current">--- A</span>
+      </div>
+
+      <div class="metric">
+        <label>Stress Score</label>
+        <span id="stress-score">--</span>
+      </div>
+
+      <div class="metric">
+        <label>Speed Limit</label>
+        <span id="speed-scale">100%</span>
+      </div>
+
+      <div class="metric">
+        <label>Chassis Speed</label>
+        <span id="chassis-speed">0.00 m/s</span>
+      </div>
+
+      <div id="speed-warning" class="speed-warning hidden">
+        ⚠️ Bateria baixa — velocidade do drive reduzida automaticamente
+      </div>
+    </section>
+
+
+
+    <section id="StreamDeck - ADL" class="dashboard-panel">
+      <h2>Stream Deck</h2>
+
+  </div>
+
+  <script src="js/stress/stress.js"></script>
+  <script src="js/streamdeck/streamdeck.js"></script>
+
+</body>
+</html>

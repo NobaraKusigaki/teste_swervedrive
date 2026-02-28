@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>HYDRA Limelight Dashboard</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="./css/global.css" />
+  <link rel="stylesheet" href="./css/limelight/limelight_box.css" />
+  <link rel="stylesheet" href="./css/limelight/arrow+bbox.css" />
+</head>
+
+<body>
+  <div id="dashboard-root">
+    <div class="limelight-grid">
+
+      <!-- ========================= -->
+      <!-- LINHA 1 — LIME 4 (SÓ STREAM / SEM IA) -->
+      <!-- ========================= -->
+      <div class="limelight-row" id="lime4">
+
+        <div class="camera-box arrow-parent">
+          <!-- Lime 4: apenas exibição do stream -->
+          <img
+            src="http://10.91.63.30:5800/stream.mjpg"
+            alt="Lime 4 Stream"
+            style="width:100%; height:100%; object-fit:cover;"
+          >
+          <!-- NÃO TEM SETA / BBOX AQUI (sem IA) -->
+        </div>
+
+        <div class="info-box">
+          <div class="info-title">Lime 4</div>
+
+          <!-- YAW -->
+          <div class="offset-container" id="yaw-lime4">
+            <div class="offset-line">
+              <span class="offset-label">Trava de Mira:</span>
+              <div class="offset-box"></div>
+            </div>
+            <div class="offset-modes">
+              <span data-mode="0">OFF</span> |
+              <span data-mode="1">TAG</span>
+            </div>
+          </div>
+
+          <!-- TESTE 1 -->
+          <div class="offset-container" id="teste1-lime4">
+            <div class="offset-line">
+              <span class="offset-label">Shooter (W.I.P):</span>
+              <div class="offset-box"></div>
+            </div>
+            <div class="offset-modes">
+              <span data-mode="0">OFF</span> |
+              <span data-mode="1">ON</span> |
+              <span data-mode="2">AUTO</span>
+            </div>
+          </div>
+
+          <div class="info-footer">
+            <span id="temp-lime4" class="ll-temp">Temp: --°C</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ========================= -->
+      <!-- LINHA 2 — LIME 2+ (COM IA: SETA + BBOX) -->
+      <!-- ========================= -->
+      <div class="limelight-row" id="lime2">
+
+        <div class="camera-box arrow-parent">
+          <!-- Lime 2+: exibe stream e recebe seta/bbox via JS -->
+          <img
+            src="http://10.91.63.2:1181/?action=stream"
+            alt="Fisheye Stream"
+            style="width:100%; height:100%; object-fit:cover;"
+          >
+          <!-- SETA (IA SOMENTE AQUI) -->
+          <div class="arrow hidden" id="arrow-lime2"></div>
+          <!-- bbox será criado via JS e anexado no parent -->
+        </div>
+
+        <div class="info-box">
+          <div class="info-title">Fisheye</div>
+
+          <!-- ALINHADOR -->
+          <div class="offset-container" id="alinhador-lime2">
+            <div class="offset-line">
+              <span class="offset-label">Alinhador (IA):</span>
+              <div class="offset-box"></div>
+            </div>
+            <div class="offset-modes">
+              <span data-mode="0">OFF</span> |
+              <span data-mode="1">ON</span> |
+              <span data-mode="2">AUTO</span>
+            </div>
+          </div>
+
+          <!-- YAW -->
+          <div class="offset-container" id="yaw-lime2">
+            <div class="offset-line">
+              <span class="offset-label">Trava de Mira:</span>
+              <div class="offset-box"></div>
+            </div>
+            <div class="offset-modes">
+              <span data-mode="0">OFF</span> |
+              <span data-mode="1">BALL</span>
+            </div>
+          </div>
+
+         <!-- <div class="info-footer">
+            <span id="temp-lime2" class="ll-temp">Temp: --°C</span>
+          </div> -->
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script type="module" src="./js/limelight/arrow_nt.js"></script>
+  <script src="./js/limelight/modes.js"></script>
+
+</body>
+</html>

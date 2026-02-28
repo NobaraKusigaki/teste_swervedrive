@@ -1,4 +1,3 @@
-
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
@@ -7,6 +6,7 @@ package frc.robot.subsystems.Swervedrive;
 
 import static edu.wpi.first.units.Units.Meter;
 
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -14,8 +14,11 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
@@ -23,6 +26,9 @@ import frc.robot.Constants;
 import java.io.File;
 import java.util.Arrays;
 import java.util.function.Supplier;
+
+import com.revrobotics.spark.SparkMax;
+
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
 import swervelib.SwerveDriveTest;
@@ -57,6 +63,28 @@ public class SwerveSubsystem extends SubsystemBase{
     swerveDrive.setModuleEncoderAutoSynchronize(false,1); 
   }
 
+  // ================= HEADING PID =================
+
+private final ProfiledPIDController headingPID =
+    new ProfiledPIDController(
+        2.0,
+        0.0,
+        0.2,
+        new TrapezoidProfile.Constraints(
+            Units.degreesToRadians(60),
+            Units.degreesToRadians(100)));
+
+{
+    headingPID.enableContinuousInput(-Math.PI, Math.PI);
+}
+
+public ProfiledPIDController getHeadingPID() {
+    return headingPID;
+}
+
+public void stop() {
+    drive(new Translation2d(), 0.0, false);
+}
  
   public SwerveSubsystem(SwerveDriveConfiguration driveCfg, SwerveControllerConfiguration controllerCfg)
   {
@@ -134,7 +162,6 @@ public class SwerveSubsystem extends SubsystemBase{
   public SwerveDriveKinematics getKinematics(){
     return swerveDrive.kinematics;
   }
-  
 
   public void resetOdometry(Pose2d initialHolonomicPose){
     swerveDrive.resetOdometry(initialHolonomicPose);
@@ -199,6 +226,19 @@ public class SwerveSubsystem extends SubsystemBase{
                                                         Constants.MAX_SPEED);
   }
 
+public double getTotalRobotCurrent() {
+    double sum = 0.0;
+    for (var module : swerveDrive.getModules()) {
+      Object drive = module.getDriveMotor().getMotor();
+      Object angle = module.getAngleMotor().getMotor();
+      if (RobotBase.isReal()) {
+        if (drive instanceof SparkMax d) sum += d.getOutputCurrent();
+        if (angle instanceof SparkMax a) sum += a.getOutputCurrent();
+      }
+    }
+    return sum;
+  }
+
   public ChassisSpeeds getFieldVelocity(){
     return swerveDrive.getFieldVelocity();
   }
@@ -227,4 +267,5 @@ public class SwerveSubsystem extends SubsystemBase{
   public SwerveDrive getSwerveDrive(){
     return swerveDrive;
   }
+  
 }

@@ -1,0 +1,171 @@
+/* ============================= */
+/* RESET GLOBAL */
+/* ============================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  background-color: #000000;
+  color: #ffffff;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ============================= */
+/* LIMELIGHT DASHBOARD */
+/* ============================= */
+
+#dashboard-root {
+  display: grid;
+  grid-template-columns: 1fr;
+
+  width: 100%;
+  min-height: 100vh;
+
+  place-content: center; 
+}
+
+
+.limelight-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 5px;
+  justify-items: center;
+  
+}
+
+/* ============================= */
+/* LINHA CAMERA + INFO */
+/* ============================= */
+
+.limelight-row {
+  display: flex;
+  align-items: center; 
+  width: 97.5%;
+}
+
+/* ============================= */
+/* CAMERA */
+/* ============================= */
+
+.camera-box {
+  flex: 0 0 75%;       
+  height: 335px;
+
+  overflow: hidden;
+  background: #000;
+  border: 2px solid #8C7A69;
+  border-radius: 12px;
+
+  position: relative;
+}
+
+/* ============================= */
+/* INFO BOX */
+/* ============================= */
+
+.info-box {
+  flex: 0 0 25%;        
+  height: 300px;        
+
+  background: #0f0f0e;
+  border: 2px solid #8C7A69;
+  border-left: none;
+  border-radius: 0 12px 12px 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+
+  margin-left: -2px;    
+  padding-top: 12px;
+}
+
+/* ============================= */
+/* TITULO */
+/* ============================= */
+
+.info-title {
+  font-size: 1.2rem;
+  color: #fff;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+/* ============================= */
+/* BLOCO DE MODOS */
+/* ============================= */
+
+.offset-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+/* linha: texto + caixa */
+.offset-line {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: row-reverse;
+  gap: 10px;
+
+  width: 85%;
+}
+
+/* texto */
+.offset-label {
+  font-size: 0.9rem;
+  font-weight: normal;
+  color: #ccc;
+}
+
+/* caixa branca */
+.offset-box {
+  width: 2.4em;
+  height: 1.4em;
+  background: #ffffff;
+  border-radius: 8px;
+}
+
+/* ON | OFF | AUTO */
+.offset-modes {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  font-weight: normal;
+  color: #888;
+}
+
+/* ============================= */
+/* TEMP LIMELIGHT */
+/* ============================= */
+
+.info-footer {
+  margin-top: auto;
+  width: 85%;
+  padding: 8px 0 10px 0;
+  text-align: left;
+}
+
+.ll-temp {
+  font-size: 0.75rem;
+  color: #bbb;
+}
+
+.ll-temp.warn {
+  color: #ffaa00;
+  font-weight: bold;
+}
