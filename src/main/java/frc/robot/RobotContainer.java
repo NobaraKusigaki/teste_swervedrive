@@ -12,34 +12,52 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.commands.DriveCommand;
+import frc.robot.commands.teleopDrive.DriveCommand;
+import frc.robot.commands.vision.AimAtTagCommand;
+import frc.robot.commands.vision.AlignWithPieceCommand;
+import frc.robot.commands.vision.AimAtTagCommand.CameraSide;
 import frc.robot.subsystems.Score.Angular.IntakeAngleManager;
 import frc.robot.subsystems.Score.Angular.StreamDeckIntakeAngleController;
+import frc.robot.subsystems.Score.PreShooter.PreShooterManager;
+import frc.robot.subsystems.Score.PreShooter.PreShooterSubsystem;
 import frc.robot.subsystems.Score.Rollers.IntakeManager;
 import frc.robot.subsystems.Score.Rollers.IntakeRollerSubsystem;
 import frc.robot.subsystems.Score.Rollers.StreamDeckIntakeRollerController;
+import frc.robot.subsystems.Score.Shooter.ShooterManager;
+import frc.robot.subsystems.Score.Shooter.ShooterSubsystem;
+import frc.robot.subsystems.Score.Spindexer.SpindexerManager;
+import frc.robot.subsystems.Score.Spindexer.SpindexerSubsystem;
+import frc.robot.subsystems.Sensors.ViewSubsystem;
 import frc.robot.subsystems.Swervedrive.SwerveSubsystem;
 
 import java.io.File;
 
-public class RobotContainer
-{
+public class RobotContainer{
 
 private final CommandPS5Controller controller = new CommandPS5Controller(0);
 private final CommandJoystick logitech = new CommandJoystick(1);
+
 private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve/neo"));
 
 private final IntakeAngleManager intake = new IntakeAngleManager();
 private final StreamDeckIntakeAngleController streamDeck = new StreamDeckIntakeAngleController(intake);    
 
-private final IntakeRollerSubsystem rollerSubsystem =
-  new IntakeRollerSubsystem();  
+private final IntakeRollerSubsystem rollerSubsystem = new IntakeRollerSubsystem();  
+private final IntakeManager rollerManager =  new IntakeManager(rollerSubsystem);
+private final StreamDeckIntakeRollerController rollerStreamDeck = new StreamDeckIntakeRollerController(rollerManager);
 
-private final IntakeManager rollerManager =
-  new IntakeManager(rollerSubsystem);
+private final SpindexerSubsystem spindexerSubsystem = new SpindexerSubsystem();
+private final SpindexerManager spindexerManager = new SpindexerManager(spindexerSubsystem);
 
-private final StreamDeckIntakeRollerController rollerStreamDeck =
-  new StreamDeckIntakeRollerController(rollerManager);
+private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
+private final ViewSubsystem vision = new ViewSubsystem();
+private final ShooterManager shooterManager = new ShooterManager(shooterSubsystem, vision);
+
+private final PreShooterSubsystem preShooterSubsystem = new PreShooterSubsystem(); 
+private final PreShooterManager preShooterManager = new PreShooterManager(preShooterSubsystem);
+
+
+private final AimAtTagCommand aimAtTag = new AimAtTagCommand(drivebase, vision, AimAtTagCommand.CameraSide.FRONT);
 
 
 private final SendableChooser<Command> autoChooser = new SendableChooser<>();
@@ -57,6 +75,10 @@ public RobotContainer()
 }
 
 private void configureBindings(){
+
+  /* ==================== =================== ====================
+   * ==================== PILOTO DE LOCOMOÇÃO ====================
+     =================== ==================== ==================== */
   
  drivebase.setDefaultCommand(
     new DriveCommand(
@@ -80,9 +102,19 @@ private void configureBindings(){
   Commands.runOnce(drivebase::zeroGyroWithAlliance)
 );
 
- // ================= ANGLE =================
 
-  // 🔺 TRIANGLE → Toggle posição (Zero ↔ Target)
+  controller.square().onTrue(
+    new InstantCommand(() -> aimAtTag.toggle())
+  );
+
+
+  /* ==================== =================== ====================
+    * ===================== PILOTO DE SISTEMA =====================
+      =================== ==================== ==================== */
+
+ // ================= ANGLE =================  (REFAZER ESSA PARTE DEPOIS)
+
+  // SQUARE : Alternar entre posição ZERO e TARGET
   logitech.button(4).onTrue(
     new InstantCommand(() -> {
       if (intake.getCurrentState() != IntakeAngleManager.ControlState.AUTOMATIC) {
@@ -92,6 +124,8 @@ private void configureBindings(){
       }
     })
   );
+
+  //================= CALIBRAÇÕES INTAKE =================
 
   //  X : Calibrar ZERO
   logitech.button(3).onTrue(
@@ -105,27 +139,49 @@ private void configureBindings(){
 
   // ================= ROLLERS =================
 
-  // L1 : Toggle Intake
+  //LB
   logitech.button(5).onTrue(
     new InstantCommand(() -> rollerManager.toggleIntake())
   );
 
-  // R1 : Toggle Outtake
+  //RB 
   logitech.button(6).onTrue(
     new InstantCommand(() -> rollerManager.toggleOuttake())
   );
 
   // ================= MANUAL ANGLE =================
 
-  new Trigger(() -> logitech.getRawAxis(7) > 0.04)
+//lt
+   new Trigger(() -> logitech.getRawAxis(2) > 0.04)
     .onTrue(new InstantCommand(() -> intake.setManual()))
-    .whileTrue(new RunCommand(() -> intake.setManualOutput(0.25)))
+    .whileTrue(new RunCommand(() -> intake.setManualOutput(0.3)))
     .onFalse(new InstantCommand(() -> intake.stop()));
 
-  new Trigger(() -> logitech.getRawAxis(8) > 0.04)
+    //rt
+  new Trigger(() -> logitech.getRawAxis(3) > 0.04)
     .onTrue(new InstantCommand(() -> intake.setManual()))
-    .whileTrue(new RunCommand(() -> intake.setManualOutput(-0.25)))
+    .whileTrue(new RunCommand(() -> intake.setManualOutput(-0.3)))
     .onFalse(new InstantCommand(() -> intake.stop()));
+
+
+  // ================= PRESHOOTERS =================
+  
+  //button back 
+  logitech.povLeft().onTrue(
+    new InstantCommand(() -> spindexerManager.toggleSpin())
+  );
+
+  logitech.povDown().onTrue(
+    new InstantCommand(() -> preShooterManager.toggleManualFeed())
+  );
+
+  // ================= SHOOTER =================
+
+  logitech.povUp().onTrue(
+    new InstantCommand(() -> shooterManager.toggleShooter())
+  );
+  
+
 }
 
 

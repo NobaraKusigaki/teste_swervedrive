@@ -1,33 +1,68 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.subsystems.Score.Spindexer;
 
-import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-/* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class SpindexerManager extends Command {
-  /** Creates a new SpindexerManager. */
-  public SpindexerManager() {
-    // Use addRequirements() here to declare subsystem dependencies.
-  }
+public class SpindexerManager extends SubsystemBase {
 
-  // Called when the command is initially scheduled.
-  @Override
-  public void initialize() {}
+    public enum SpindexerState {
+        IDLE,
+        SPINNING,
+        DISABLED
+    }
 
-  // Called every time the scheduler runs while the command is scheduled.
-  @Override
-  public void execute() {}
+    private final SpindexerSubsystem spindexer;
+    private SpindexerState state = SpindexerState.IDLE;
 
-  // Called once the command ends or is interrupted.
-  @Override
-  public void end(boolean interrupted) {}
+    public SpindexerManager(SpindexerSubsystem spindexer) {
+        this.spindexer = spindexer;
+        SmartDashboard.putString("Spindexer/State", state.name());
+    }
 
-  // Returns true when the command should end.
-  @Override
-  public boolean isFinished() {
-    return false;
-  }
+    public void toggleSpin() {
+        if (state == SpindexerState.SPINNING) {
+            setState(SpindexerState.IDLE);
+        } else {
+            setState(SpindexerState.SPINNING);
+        }
+    }
+
+    public void stop() {
+        setState(SpindexerState.IDLE);
+    }
+
+    public void disable(String reason) {
+        setState(SpindexerState.DISABLED);
+        SmartDashboard.putString("Spindexer/DisabledReason", reason);
+    }
+
+    private void setState(SpindexerState newState) {
+
+        if (state == SpindexerState.DISABLED && newState != SpindexerState.DISABLED)
+            return;
+
+        state = newState;
+        SmartDashboard.putString("Spindexer/State", state.name());
+    }
+
+    @Override
+    public void periodic() {
+
+        switch (state) {
+
+            case SPINNING:
+                spindexer.spining();
+                break;
+
+            case DISABLED:
+            case IDLE:
+            default:
+                spindexer.stop();
+                break;
+        }
+    }
+
+    public SpindexerState getState() {
+        return state;
+    }
 }

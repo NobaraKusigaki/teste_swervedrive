@@ -10,13 +10,14 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import frc.robot.Constants;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ClimberSubsystem extends SubsystemBase {
-private final SparkMax climb_left = new SparkMax(14, MotorType.kBrushless); 
-private final SparkMax climb_right = new SparkMax(15, MotorType.kBrushless); 
+private final SparkMax climb_left = new SparkMax(Constants.ClimbConstants.CLIMBER_LEFT_ID, MotorType.kBrushless); 
+private final SparkMax climb_right = new SparkMax(Constants.ClimbConstants.CLIMBER_RIGHT_ID, MotorType.kBrushless); 
 
 private final SparkMaxConfig cfg1;
 private final SparkMaxConfig cfg2; 
@@ -53,16 +54,13 @@ private final SparkMaxConfig cfg2;
     climb_right.stopMotor();
   }
 
-  public void getPose(){
-    climb_left.getEncoder().getPosition();
-    climb_right.getEncoder().getPosition();
-
-  }
+  public double getPosition() {
+    return climb_left.getEncoder().getPosition();
+}
 
   @Override
   public void periodic() {
   SmartDashboard.putNumber("Left climb", climb_left.getEncoder().getPosition());
-  SmartDashboard.putNumber("Right climb", climb_right.getEncoder().getPosition());
 
 }
 }

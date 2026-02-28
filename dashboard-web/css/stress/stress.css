@@ -1,0 +1,85 @@
+
+#stress-status {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: bold;
+  padding: 14px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.status-ok {
+  background: #1f7a1f;
+  color: #eaffea;
+}
+
+.status-medium {
+  background: #f1c40f;
+  color: #000;
+}
+
+.status-high {
+  background: #ff2424;
+  color: #fff;
+}
+
+.status-critical {
+  background: #ff0000;
+  color: #fff;
+  animation: critical-blink 1s infinite;
+}
+
+.speed-warning {
+  margin-top: 6px;
+  padding: 8px;
+  border-radius: 6px;
+  background: #f1c40f;
+  color: #000;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.speed-warning.hidden {
+  display: none;
+}
+
+.metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1a1a1a;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.metric label {
+  opacity: 0.75;
+}
+
+.metric span {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+#speed-scale {
+  color: #00e5ff;
+}
+
+@keyframes critical-blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+@keyframes high-shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  50% { transform: translateX(2px); }
+  75% { transform: translateX(-2px); }
+  100% { transform: translateX(0); }
+}
+
+.status-high {
+  animation: high-shake 0.3s infinite;
+}

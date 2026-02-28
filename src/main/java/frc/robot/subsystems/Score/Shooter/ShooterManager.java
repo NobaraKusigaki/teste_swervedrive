@@ -1,9 +1,8 @@
 package frc.robot.subsystems.Score.Shooter;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.Score.PreShooter.PreShooterManager.PreShooterState;
+import frc.robot.subsystems.Sensors.ViewSubsystem;
 
     public class ShooterManager extends SubsystemBase {
 
@@ -17,14 +16,16 @@ import frc.robot.subsystems.Score.PreShooter.PreShooterManager.PreShooterState;
     private ShooterState state = ShooterState.IDLE;
 
     private final ShooterSubsystem shooter;
+    private final ViewSubsystem vision;
 
-    private double lastValidDistance = 2.0;
+    private double lastValidDistance = 0.0;
 
     private final double[] distances = {1.0, 2.0, 2.5, 3.0, 3.5, 4.0};
     private final double[] rpms      = {3400, 3700, 4000, 4300, 4600, 5000};
 
-    public ShooterManager(ShooterSubsystem shooter) {
+    public ShooterManager(ShooterSubsystem shooter, ViewSubsystem vision) {
         this.shooter = shooter;
+        this.vision = vision;
     }
 
     // ================= TELEOP =================
@@ -79,22 +80,19 @@ import frc.robot.subsystems.Score.PreShooter.PreShooterManager.PreShooterState;
             }
         }
 
-        return 4000;
+        return distance;
     }
 
         @Override
         public void periodic() {
 
-            // System.out.println("Distance: " + vision.getDistanceToTag());
-
+        System.out.println("distance: " + vision.getBackDistanceToTag());
 
         if (state == ShooterState.IDLE || state == ShooterState.DISABLED) {
             shooter.stop();
             return;
         }
-
-        // double distance = vision.getBackDistanceToTag();
-        double distance = 2;
+        double distance = vision.getBackDistanceToTag();
 
         if (distance != Double.MAX_VALUE) {
             lastValidDistance = distance;

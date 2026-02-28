@@ -8,22 +8,32 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 
 public class SpindexerSubsystem extends SubsystemBase {
 
-  private SparkMax SpinMotor = new SparkMax(11, MotorType.kBrushed);
-   
-
-    private SparkMaxConfig cfg = new SparkMaxConfig();
+  private SparkMax SpinMotor = new SparkMax(Constants.SpindexerConstants.SPINNER_ID, MotorType.kBrushed);
+  private SparkMaxConfig cfg = new SparkMaxConfig();
 
   public SpindexerSubsystem() {
-    cfg.idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(40,20);
+    cfg
+    .idleMode(IdleMode.kBrake)
+    .smartCurrentLimit(40);
 
-    SpinMotor.configure(cfg, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    SpinMotor.configure(
+      cfg, 
+      ResetMode.kResetSafeParameters, 
+      PersistMode.kPersistParameters);
 
   }
 
+public void spining() {
+   SpinMotor.set(Constants.SpindexerConstants.SPIN_POWER);
+    
+}
+    public void stop() {
+      SpinMotor.stopMotor();
+    }
   @Override
   public void periodic() {
     // This method will be called once per scheduler run

@@ -24,9 +24,16 @@ public final class Constants {
     public static final double RIGHT_X_DEADBAND = 0.05;
     public static final double TURN_CONSTANT = 2;
   }
- 
+
+  public static class LimelightConstants {
+    public static final double LIMELIGHT_HEIGHT = 0.70;   // metros
+    public static final double TAG_HEIGHT = 1.041;         // metros
+    public static final double LIMELIGHT_ANGLE = Units.degreesToRadians(90);    
+
+  }
  
   public static class IntakeConstants {
+    
     public static final int INTAKE_LEADER_ID = 9;  
 
     public static final int ANGLE_MOTOR_ID = 10;     
@@ -36,7 +43,7 @@ public final class Constants {
     public static final double ANGLE_KI = 0.0;
     public static final double ANGLE_KD = 0.001;
 
-    public static final double ANGLE_KS = 0.07;
+    public static final double ANGLE_KS = 0.08;
     public static final double ANGLE_KG = 0.07;
     public static final double ANGLE_KV = 0.0;
     public static final double ANGLE_KA = 0.0;
@@ -52,9 +59,17 @@ public final class Constants {
 
   }
 
+  public static class SpindexerConstants {
+
+    public static final double SPIN_POWER = -0.9;
+    public static final int SPINNER_ID = 11;
+  
+  }
+
   public static class PreShooterConstants {
+    
     public static final int PRE_SHOOTER_ID = 12;
-    public static final double FEED_POWER = 0.5;
+    public static final double FEED_POWER = 1;
   
   }
 
@@ -72,4 +87,21 @@ public final class Constants {
     public static final double RPM_TOLERANCE = 100;
     
   }
+    public static class ClimbConstants {
+
+    public static final double CLIMBER_kP = 0.02;
+    public static final double CLIMBER_kI = 0.0;
+    public static final double CLIMBER_kD = 0.0;
+
+    public static final double CLIMBER_MAX_OUTPUT = 0.25;
+    public static final double CLIMBER_MIN_OUTPUT = -0.25;
+    
+    public static final int CLIMBER_LEFT_ID = 14;
+    public static final int CLIMBER_RIGHT_ID = 15;
+    public static final double CLIMBER_TOLERANCE = 0.7;
+   
+    public static final String PREF_MIN_KEY = "Climber min position";
+    public static final String PREF_MAX_KEY = "Climber max position";
+}
+
 }

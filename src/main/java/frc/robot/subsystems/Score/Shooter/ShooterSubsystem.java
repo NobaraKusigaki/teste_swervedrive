@@ -4,8 +4,8 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -26,7 +26,7 @@ public class ShooterSubsystem extends SubsystemBase {
         SparkMaxConfig config = new SparkMaxConfig();
 
         config.idleMode(IdleMode.kBrake)
-              .inverted(true)
+              .inverted(false)
               .smartCurrentLimit(40);
 
         config.closedLoop
@@ -34,7 +34,6 @@ public class ShooterSubsystem extends SubsystemBase {
                   Constants.ShooterConstants.NEO_kP,
                   Constants.ShooterConstants.NEO_kI,
                   Constants.ShooterConstants.NEO_kD)
-              .velocityFF(Constants.ShooterConstants.NEO_kFF)
               .outputRange(-1, 1);
 
         neoMotor.configure(
