@@ -83,29 +83,42 @@ import frc.robot.subsystems.Sensors.ViewSubsystem;
         return distance;
     }
 
-        @Override
-        public void periodic() {
+       @Override
+public void periodic() {
 
-        System.out.println("distance: " + vision.getBackDistanceToTag());
-
-        if (state == ShooterState.IDLE || state == ShooterState.DISABLED) {
-            shooter.stop();
-            return;
-        }
-        double distance = vision.getBackDistanceToTag();
-
-        if (distance != Double.MAX_VALUE) {
-            lastValidDistance = distance;
-        }
-
-        double rpm = interpolateRPM(lastValidDistance);
-
-        shooter.setTargetRPM(rpm);
-
-        if (shooter.isAtSpeed()) {
-            state = ShooterState.AT_SPEED;
-        } else {
-            state = ShooterState.SPINNING;
-        }
+    if (state == ShooterState.IDLE || state == ShooterState.DISABLED) {
+        shooter.stop();
+        return;
     }
+
+    if (!vision.hasValidBackTarget()) {
+        shooter.stop();
+        return;
+    }
+
+    double ty = vision.getBackTy();  
+
+    // ty = 0 quando estiver na distância ideal
+    // ajuste seu crosshair na limelight para calibrar
+
+    double kPDistance = -0.1;
+
+    double distanceError = ty;
+    double distanceAdjust = kPDistance * distanceError;
+
+    
+    double baseRPM = 4200;
+
+    double targetRPM = baseRPM + (distanceAdjust * 1000);
+
+    targetRPM = MathUtil.clamp(targetRPM, 3000, 5000);
+
+    shooter.setTargetRPM(targetRPM);
+
+    if (shooter.isAtSpeed()) {
+        state = ShooterState.AT_SPEED;
+    } else {
+        state = ShooterState.SPINNING;
+    }
+}
 }

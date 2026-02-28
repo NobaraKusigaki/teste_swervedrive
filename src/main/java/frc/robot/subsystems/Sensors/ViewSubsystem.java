@@ -125,8 +125,12 @@ public class ViewSubsystem extends SubsystemBase {
 
   public double getBackTxRad() {
     return Units.degreesToRadians(
-        limeBack.getEntry("tx").getDouble(0.0));
+        limeBack.getEntry("tx").getDouble(0.0));      
   }
+
+  public double getBackTy() {
+    return limeBack.getEntry("ty").getDouble(0.0);
+}
 
   public double getBackDistanceToTag() {
 

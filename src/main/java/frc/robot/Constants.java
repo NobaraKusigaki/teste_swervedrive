@@ -28,7 +28,7 @@ public final class Constants {
   public static class LimelightConstants {
     public static final double LIMELIGHT_HEIGHT = 0.70;   // metros
     public static final double TAG_HEIGHT = 1.041;         // metros
-    public static final double LIMELIGHT_ANGLE = Units.degreesToRadians(90);    
+    public static final double LIMELIGHT_ANGLE = Units.degreesToRadians(0);    
 
   }
  
