@@ -52,8 +52,6 @@ public void robotInit() {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     Logger.recordOutput("Robot/LoopTimeSec", edu.wpi.first.wpilibj.Timer.getFPGATimestamp() );
-    SmartDashboard.putNumber("teste", 123);
-    SmartDashboard.putNumber("REAL_TEST", 999);
     
     //robotContainer.updateDashboards();
    

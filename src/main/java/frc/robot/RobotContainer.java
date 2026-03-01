@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
@@ -12,10 +13,15 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.Poses.AutoGoAndAlignOutpost;
+// import frc.robot.autos.NamedCommandsRegistry;
+import frc.robot.commands.auto_blocks.AutoTaxiCommand;
 import frc.robot.commands.teleopDrive.DriveCommand;
 import frc.robot.commands.vision.AimAtTagCommand;
+// import frc.robot.commands.vision.AimAtTagCommand;
 import frc.robot.commands.vision.AlignWithPieceCommand;
-import frc.robot.commands.vision.AimAtTagCommand.CameraSide;
+import frc.robot.commands.vision.AutoShootAssistCommand;
+// import frc.robot.commands.vision.AimAtTagCommand.CameraSide;
 import frc.robot.subsystems.Score.Angular.IntakeAngleManager;
 import frc.robot.subsystems.Score.Angular.StreamDeckIntakeAngleController;
 import frc.robot.subsystems.Score.PreShooter.PreShooterManager;
@@ -31,7 +37,9 @@ import frc.robot.subsystems.Sensors.ViewSubsystem;
 import frc.robot.subsystems.Swervedrive.SwerveSubsystem;
 
 import java.io.File;
-import java.lang.ModuleLayer.Controller;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 
 public class RobotContainer{
 
@@ -62,11 +70,7 @@ public class RobotContainer{
   private final StreamDeckIntakeRollerController rollerStreamDeck;
   private final AimAtTagCommand aimAtTag;
 
-  // 5. Autônomo
-  private final SendableChooser<Command> autoChooser;
-
   
-
   public RobotContainer() {
 
       // --- Instanciação dos Controles ---
@@ -92,22 +96,25 @@ public class RobotContainer{
       spindexerManager = new SpindexerManager(spindexerSubsystem);
       preShooterManager = new PreShooterManager(preShooterSubsystem);
 
-      // --- Instanciação dos Periféricos/Comandos ---
-      streamDeck = new StreamDeckIntakeAngleController(intake);
-      rollerStreamDeck = new StreamDeckIntakeRollerController(rollerManager);
-      aimAtTag = new AimAtTagCommand(drivebase, vision, AimAtTagCommand.CameraSide.FRONT, xSupplier, ySupplier);
+    streamDeck = new StreamDeckIntakeAngleController(intake); //CONSERTAR 
+    rollerStreamDeck = new StreamDeckIntakeRollerController(rollerManager); // CONSERTAR 
+    aimAtTag = new AimAtTagCommand(drivebase, vision, null, xSupplier, ySupplier); //CONSERTARRRR
 
-      // --- Configurações Finais ---
-      autoChooser = new SendableChooser<>();
-      
-      DriverStation.silenceJoystickConnectionWarning(true);
-      configureBindings();
+  configureBindings();
+  DriverStation.silenceJoystickConnectionWarning(true);
 
-      // Configuração do Seletor de Auto
-      autoChooser.setDefaultOption("Do Nothing", Commands.runOnce(drivebase::zeroGyroWithAlliance));
-      SmartDashboard.putData("Auto Chooser", autoChooser);
-  }
+//   NamedCommandsRegistry.registerAll(
+//     drivebase,
+//     vision,
+//     shooterManager,
+//     preShooterManager,
+//     spindexerManager,
+//     null // se ainda não tiver climb
+// );
 
+  vision.selectAllHubTags();
+  vision.selectAllTowerTags();
+}
 
 private void configureBindings(){
 
@@ -115,6 +122,7 @@ private void configureBindings(){
    * ==================== PILOTO DE LOCOMOÇÃO ====================
      =================== ==================== ==================== */
   
+    
  drivebase.setDefaultCommand(
     new DriveCommand(
         drivebase,
@@ -135,6 +143,16 @@ private void configureBindings(){
 );
   controller.options().onTrue(
   Commands.runOnce(drivebase::zeroGyroWithAlliance)
+);
+
+  controller.square().toggleOnTrue(
+    new AimAtTagCommand(
+        drivebase,
+        vision,
+        AimAtTagCommand.CameraSide.BACK,
+        xSupplier,
+        ySupplier
+    )
 );
 
 
@@ -210,19 +228,13 @@ private void configureBindings(){
   logitech.povUp().onTrue(
     new InstantCommand(() -> shooterManager.toggleShooter())
   );
-  
-  logitech.povUp().onTrue(
-    new InstantCommand(() -> aimAtTag.toggle())
-  );
+  }
 
-}
+  public Command getAutonomousCommand() {
+  return new AutoGoAndAlignOutpost(drivebase, vision);
+  }
 
-public Command getAutonomousCommand(){
-  return autoChooser.getSelected();
-}
-
-public void setMotorBrake(boolean brake)
-{
-  drivebase.setMotorBrake(brake);
-}
+    public void setMotorBrake(boolean brake){
+      drivebase.setMotorBrake(brake);
+  }
 }
