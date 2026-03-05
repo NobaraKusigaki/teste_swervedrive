@@ -16,6 +16,9 @@ public class AimAtTagCommand extends Command {
   private final ViewSubsystem vision;
   private final CameraSide side;
 
+  private static final double FRONT_CAMERA_OFFSET_RAD =
+    Units.degreesToRadians(2); // ajuste fino para alinhar melhor com a torre, já que o centro da câmera frontal não é exatamente o centro do robô 
+
   private final ProfiledPIDController headingPID =
       new ProfiledPIDController(
           3.0,
@@ -58,13 +61,15 @@ public class AimAtTagCommand extends Command {
       return;
     }
 
-    double tx =
-        side == CameraSide.FRONT
-            ? vision.getFrontTxRad()
-            : vision.getBackTxRad();
+    double tx;
+
+    if (side == CameraSide.FRONT) {
+    tx = vision.getFrontTxRad() + FRONT_CAMERA_OFFSET_RAD;
+   } else {
+    tx = vision.getBackTxRad();
+    }
 
     double rot = headingPID.calculate(tx, 0.0);
-
     rot = Math.max(Math.min(rot, 3.0), -3.0);
 
     swerve.drive(new Translation2d(), rot, false);
@@ -76,7 +81,12 @@ public class AimAtTagCommand extends Command {
   }
 
   @Override
-  public boolean isFinished() {
-    return false; // necessário para toggle
+public boolean isFinished() {
+  if (side == CameraSide.FRONT) {
+    return Math.abs(vision.getFrontTxRad()) < Units.degreesToRadians(1.5);
+  } else {
+    return Math.abs(vision.getBackTxRad()) < Units.degreesToRadians(1.5);
   }
+}
+
 }

@@ -32,18 +32,18 @@ public class Robot extends LoggedRobot {
    @Override
 public void robotInit() {
 
-  // Logger.recordMetadata("ProjectName", "SwerveBinga"); 
-  // Logger.recordMetadata("RuntimeType", RobotBase.getRuntimeType().toString());
+  Logger.recordMetadata("ProjectName", "SwerveBinga"); 
+  Logger.recordMetadata("RuntimeType", RobotBase.getRuntimeType().toString());
 
-  // if (RobotBase.isSimulation()) {
-  //   Logger.addDataReceiver(new WPILOGWriter("logs"));
-  //   Logger.addDataReceiver(new NT4Publisher());
-  // } else {
-  //   Logger.addDataReceiver(new WPILOGWriter("/U/logs"));
-  //   Logger.addDataReceiver(new NT4Publisher());
-  // }
+  if (RobotBase.isSimulation()) {
+    Logger.addDataReceiver(new WPILOGWriter("logs"));
+    Logger.addDataReceiver(new NT4Publisher());
+  } else {
+    Logger.addDataReceiver(new WPILOGWriter("/U/logs"));
+    Logger.addDataReceiver(new NT4Publisher());
+  }
 
-  // Logger.start();  
+  Logger.start();  
 }
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();

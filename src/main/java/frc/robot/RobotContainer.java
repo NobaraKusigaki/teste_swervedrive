@@ -13,16 +13,14 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.commands.Poses.AutoGoAndAlignOutpost;
-// import frc.robot.autos.NamedCommandsRegistry;
-import frc.robot.commands.auto_blocks.AutoTaxiCommand;
+import frc.robot.commands.auto_blocks.NamedCommandsRegistry;
 import frc.robot.commands.teleopDrive.DriveCommand;
 // import frc.robot.commands.vision.AimAtTagCommand;
 import frc.robot.commands.vision.AlignWithPieceCommand;
-import frc.robot.commands.vision.AutoShootAssistCommand;
 // import frc.robot.commands.vision.AimAtTagCommand.CameraSide;
 import frc.robot.subsystems.Score.Angular.IntakeAngleManager;
 import frc.robot.subsystems.Score.Angular.StreamDeckIntakeAngleController;
+import frc.robot.subsystems.Score.Climb.ClimberManager;
 import frc.robot.subsystems.Score.PreShooter.PreShooterManager;
 import frc.robot.subsystems.Score.PreShooter.PreShooterSubsystem;
 import frc.robot.subsystems.Score.Rollers.IntakeManager;
@@ -37,7 +35,6 @@ import frc.robot.subsystems.Swervedrive.SwerveSubsystem;
 
 import java.io.File;
 
-import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 public class RobotContainer{
@@ -64,7 +61,8 @@ private final ShooterManager shooterManager = new ShooterManager(shooterSubsyste
 private final PreShooterSubsystem preShooterSubsystem = new PreShooterSubsystem(); 
 private final PreShooterManager preShooterManager = new PreShooterManager(preShooterSubsystem);
 
-private final AutoShootAssistCommand autoShootAssist = new AutoShootAssistCommand(drivebase, vision, shooterManager);
+private final ClimberManager climbManager = new ClimberManager();
+
 
 //private final AimAtTagCommand aimAtTag = new AimAtTagCommand(drivebase, vision, AimAtTagCommand.CameraSide.FRONT);
 
@@ -73,15 +71,14 @@ public RobotContainer(){
   configureBindings();
   DriverStation.silenceJoystickConnectionWarning(true);
 
-//   NamedCommandsRegistry.registerAll(
-//     drivebase,
-//     vision,
-//     shooterManager,
-//     preShooterManager,
-//     spindexerManager,
-//     null // se ainda não tiver climb
-// );
-
+ NamedCommandsRegistry.registerAll(
+    drivebase,
+    vision,
+    shooterManager,
+    preShooterManager,
+    spindexerManager,
+    climbManager
+);
   vision.selectAllHubTags();
   vision.selectAllTowerTags();
 }
@@ -92,9 +89,6 @@ private void configureBindings(){
    * ==================== PILOTO DE LOCOMOÇÃO ====================
      =================== ==================== ==================== */
   
-     controller.triangle().onTrue(
-    new InstantCommand(() -> autoShootAssist.toggle())
-);
 
  drivebase.setDefaultCommand(
     new DriveCommand(
@@ -203,7 +197,7 @@ private void configureBindings(){
 }
 
 public Command getAutonomousCommand() {
- return new AutoGoAndAlignOutpost(drivebase, vision);
+ return new PathPlannerAuto("AutoFix");
 }
 
 public void setMotorBrake(boolean brake)
