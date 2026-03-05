@@ -225,7 +225,7 @@ private void configureBindings(){
   }
 
   public Command getAutonomousCommand() {
-  return new PathPlannerAuto("AutoFix");
+  return new PathPlannerAuto("AutoRobotRight");
   }
 
     public void setMotorBrake(boolean brake){
