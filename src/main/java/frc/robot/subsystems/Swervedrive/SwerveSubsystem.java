@@ -51,7 +51,6 @@ public class SwerveSubsystem extends SubsystemBase{
   private final SwerveDrive swerveDrive;
 
    public SwerveSubsystem(File directory){ 
-    boolean blueAlliance = DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Blue;
     Pose2d startingPose = new Pose2d();
     
     SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;

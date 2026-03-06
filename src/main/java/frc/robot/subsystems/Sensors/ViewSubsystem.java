@@ -41,13 +41,13 @@ public class ViewSubsystem extends SubsystemBase {
     }
   }
 
-  public void selectOutpost(HubTagSelector.HubSide side) {
+  public void selectOutpost(OutPostSelector.OutPost side) {
     Optional<DriverStation.Alliance> alliance =
         DriverStation.getAlliance();
 
     if (alliance.isPresent()) {
       allowedBackTags =
-          HubTagSelector.getTags(side, alliance.get());
+          OutPostSelector.getTags(side, alliance.get());
     }
   }
 
@@ -148,9 +148,9 @@ public class ViewSubsystem extends SubsystemBase {
 
   allowedBackTags = new java.util.HashSet<>();
 
-  allowedBackTags.addAll(HubTagSelector.getTags(
-      HubTagSelector.HubSide.CENTER,
-      alliance.get()));
+  allowedBackTags.addAll(HubTagSelector.getTags(HubTagSelector.HubSide.LEFT,   alliance.get()));
+  allowedBackTags.addAll(HubTagSelector.getTags(HubTagSelector.HubSide.CENTER, alliance.get()));
+  allowedBackTags.addAll(HubTagSelector.getTags(HubTagSelector.HubSide.RIGHT,  alliance.get()));
 }
 
 public void selectAllTowerTags() {
@@ -179,4 +179,3 @@ public void selectTagOutpost()
 }
 
 }
-

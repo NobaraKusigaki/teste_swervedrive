@@ -12,8 +12,7 @@ public class DriveToPoseCommand {
       3.0,          
       2.5,         
       Math.PI,      // max angular velocity
-      Math.PI * 2,  // max angular accel
-      12  
+      Math.PI * 2   // max angular accel
   );
 
   public static Command goTo(Pose2d pose) {

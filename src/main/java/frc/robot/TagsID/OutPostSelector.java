@@ -18,14 +18,16 @@ public class OutPostSelector {
             switch (side) {
                 case CENTER:
                     return Set.of(29);
+                default:
+                    return Set.of();
             }
         } else {
             switch (side) {
                 case CENTER:
                     return Set.of(13);
+                default:
+                    return Set.of();
             }
         }
-
-        return Set.of();
     } 
 }

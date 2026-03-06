@@ -21,6 +21,8 @@ public class TowerTagSelector{
                     return Set.of(31);
                 case RIGHT:
                     return Set.of(32);
+                default:
+                    return Set.of();
             }
         } else {
             switch (side) {
@@ -28,10 +30,10 @@ public class TowerTagSelector{
                     return Set.of(15);
                 case RIGHT:
                     return Set.of(16);
+                default:
+                    return Set.of();
             }
         }
-
-        return Set.of();
     } 
 
 }
