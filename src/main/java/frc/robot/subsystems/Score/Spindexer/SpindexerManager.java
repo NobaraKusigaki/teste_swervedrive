@@ -37,12 +37,15 @@ public class SpindexerManager extends SubsystemBase {
     }
 
     private void setState(SpindexerState newState) {
-
-        if (state == SpindexerState.DISABLED && newState != SpindexerState.DISABLED)
-            return;
-
         state = newState;
         SmartDashboard.putString("Spindexer/State", state.name());
+    }
+
+    public void reenable() {
+        if (state == SpindexerState.DISABLED) {
+            state = SpindexerState.IDLE;
+            SmartDashboard.putString("Spindexer/State", state.name());
+        }
     }
 
     @Override
@@ -51,7 +54,7 @@ public class SpindexerManager extends SubsystemBase {
         switch (state) {
 
             case SPINNING:
-                spindexer.spining();
+                spindexer.spinning();
                 break;
 
             case DISABLED:

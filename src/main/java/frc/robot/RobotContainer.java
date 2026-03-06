@@ -1,11 +1,7 @@
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -16,15 +12,11 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.auto_blocks.NamedCommandsRegistry;
 import frc.robot.commands.teleopDrive.DriveCommand;
 import frc.robot.commands.vision.AimAtTagCommand;
-import frc.robot.commands.vision.AlignWithPieceCommand;
 import frc.robot.subsystems.Score.Angular.IntakeAngleManager;
-import frc.robot.subsystems.Score.Angular.StreamDeckIntakeAngleController;
-import frc.robot.subsystems.Score.Climb.ClimberManager;
 import frc.robot.subsystems.Score.PreShooter.PreShooterManager;
 import frc.robot.subsystems.Score.PreShooter.PreShooterSubsystem;
-import frc.robot.subsystems.Score.Rollers.IntakeManager;
+import frc.robot.subsystems.Score.Rollers.IntakeRollerManager;
 import frc.robot.subsystems.Score.Rollers.IntakeRollerSubsystem;
-import frc.robot.subsystems.Score.Rollers.StreamDeckIntakeRollerController;
 import frc.robot.subsystems.Score.Shooter.ShooterManager;
 import frc.robot.subsystems.Score.Shooter.ShooterSubsystem;
 import frc.robot.subsystems.Score.Spindexer.SpindexerManager;
@@ -59,13 +51,9 @@ public class RobotContainer {
 
   /* ================= MANAGERS ================= */
   private final ShooterManager shooterManager;
-  private final IntakeManager rollerManager;
+  private final IntakeRollerManager rollerManager;
   private final SpindexerManager spindexerManager;
   private final PreShooterManager preShooterManager;
-
-  /* ================= STREAM DECK ================= */
-  private final StreamDeckIntakeAngleController streamDeck;
-  private final StreamDeckIntakeRollerController rollerStreamDeck;
 
   public RobotContainer() {
 
@@ -89,13 +77,9 @@ public class RobotContainer {
 
     /* ========= MANAGERS ========= */
     shooterManager = new ShooterManager(shooterSubsystem, vision);
-    rollerManager = new IntakeManager(rollerSubsystem);
+    rollerManager = new IntakeRollerManager(rollerSubsystem);
     spindexerManager = new SpindexerManager(spindexerSubsystem);
-    preShooterManager = new PreShooterManager(preShooterSubsystem);
-
-    /* ========= STREAM DECK ========= */
-    streamDeck = new StreamDeckIntakeAngleController(intake);
-    rollerStreamDeck = new StreamDeckIntakeRollerController(rollerManager);
+    preShooterManager = new PreShooterManager(preShooterSubsystem, vision, shooterManager);
 
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
@@ -108,8 +92,8 @@ public class RobotContainer {
         spindexerManager
     );
 
-    vision.selectAllHubTags();
-    vision.selectAllTowerTags();
+    // Tag selection is deferred to autonomousInit/teleopInit via refreshTagSelection()
+    // so that DriverStation.getAlliance() is guaranteed to be available
   }
 
   private void configureBindings() {
@@ -221,6 +205,11 @@ public class RobotContainer {
 
   public SwerveSubsystem getSwerveSubsystem() {
     return drivebase;
+  }
+
+  public void refreshTagSelection() {
+    vision.selectAllHubTags();
+    vision.selectAllTowerTags();
   }
 
   public void setMotorBrake(boolean brake) {

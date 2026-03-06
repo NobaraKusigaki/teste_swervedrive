@@ -41,11 +41,11 @@ public class DriveCommand extends Command {
         drivebase.drive(
             SwerveMath.scaleTranslation(
                 new Translation2d(
-                    -x * drivebase.getSwerveDrive().getMaximumChassisVelocity(),
-                    -y * drivebase.getSwerveDrive().getMaximumChassisVelocity()),
+                    x * drivebase.getSwerveDrive().getMaximumChassisVelocity(),
+                    y * drivebase.getSwerveDrive().getMaximumChassisVelocity()),
                 0.8),
             Math.pow(rot, 3) * drivebase.getSwerveDrive().getMaximumChassisAngularVelocity(),
-            false
+            true
         );
     }
 }

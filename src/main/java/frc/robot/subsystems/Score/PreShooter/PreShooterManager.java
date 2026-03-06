@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.Constants;
 import frc.robot.subsystems.Score.Shooter.ShooterManager;
+import frc.robot.subsystems.Sensors.ViewSubsystem;
 
 public class PreShooterManager extends SubsystemBase {
 
@@ -24,9 +25,13 @@ public class PreShooterManager extends SubsystemBase {
     private ControlMode mode = ControlMode.MANUAL;
 
     private final PreShooterSubsystem preShooter;
+    private final ViewSubsystem vision;
+    private final ShooterManager shooterManager;
 
-    public PreShooterManager(PreShooterSubsystem preShooter) {
+    public PreShooterManager(PreShooterSubsystem preShooter, ViewSubsystem vision, ShooterManager shooterManager) {
         this.preShooter = preShooter;
+        this.vision = vision;
+        this.shooterManager = shooterManager;
     }
 
     // ================= MODE =================
@@ -84,22 +89,17 @@ public class PreShooterManager extends SubsystemBase {
         // ===== AUTO MODE =====
         if (mode == ControlMode.AUTO_DISTANCE) {
 
-            // boolean tagValid = vision.hasValidFrontTarget();
-            boolean tagValid = true;
+            boolean tagValid = vision.hasValidFrontTarget();
 
-            // boolean aligned =
-            //     Math.abs(vision.getFrontTxRad())
-            //     < Math.toRadians(1.2);
-            boolean aligned = true;
+            boolean aligned =
+                Math.abs(vision.getFrontTxRad())
+                < Math.toRadians(1.2);
 
-            // double distance = vision.getFrontDistanceToTag();
-            double distance = 2;
+            double distance = vision.getFrontDistanceToTag();
 
-            // boolean validDistance = distance != Double.MAX_VALUE && Math.abs
-            //         (distance - Constants.LimelightConstants.distance4Shoot) < 0.20;
-            boolean validDistance = true;
+            boolean validDistance = distance != Double.MAX_VALUE;
 
-            boolean shooterReady = true;
+            boolean shooterReady = shooterManager.isAtSpeed();
 
             if (tagValid && aligned && shooterReady && validDistance) {
                 state = PreShooterState.AUTO_FEEDING;

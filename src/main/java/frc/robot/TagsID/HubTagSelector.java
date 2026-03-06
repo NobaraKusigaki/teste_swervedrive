@@ -24,6 +24,8 @@ public class HubTagSelector {
                     return Set.of(18, 27);
                 case RIGHT:
                     return Set.of(21, 24);
+                default:
+                    return Set.of();
             }
         } else {
             switch (side) {
@@ -33,9 +35,9 @@ public class HubTagSelector {
                     return Set.of(11, 2);
                 case RIGHT:
                     return Set.of(8, 5);
+                default:
+                    return Set.of();
             }
         }
-
-        return Set.of();
     }
 }

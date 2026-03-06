@@ -53,6 +53,9 @@ public final class Constants {
         
     public static final double ANGLE_TOLERANCE_DEG = 1;
     public static final String PREF_ENCODER_OFFSET = "Encoder offset Intake Angle";
+
+    public static final double ANGLE_MIN_DEG = 0.0;    // fully retracted
+    public static final double ANGLE_MAX_DEG = 120.0;  // fully extended — tune this!
     
   
     public static final double INTAKE_POWER = 1;

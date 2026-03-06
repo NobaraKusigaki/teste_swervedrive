@@ -27,7 +27,7 @@ public class SpindexerSubsystem extends SubsystemBase {
 
   }
 
-public void spining() {
+public void spinning() {
    SpinMotor.set(Constants.SpindexerConstants.SPIN_POWER);
     
 }

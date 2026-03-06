@@ -46,7 +46,7 @@ private final SparkMaxConfig cfg2;
 
   public void setClimbPower(double power) {
     climb_left.set(power);
-    climb_right.set(power);
+    // climb_right follows climb_left automatically via follower config
   } 
 
   public void stopClimb() {
