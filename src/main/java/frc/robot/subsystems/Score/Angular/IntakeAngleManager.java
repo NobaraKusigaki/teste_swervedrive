@@ -34,7 +34,6 @@ public class IntakeAngleManager extends SubsystemBase {
             Constants.IntakeConstants.ANGLE_KI,
             Constants.IntakeConstants.ANGLE_KD
         );
-        pid.enableContinuousInput(0.0, 360.0);
         pid.setTolerance(Constants.IntakeConstants.ANGLE_TOLERANCE_DEG);
 
         ff = new ArmFeedforward(
@@ -70,7 +69,7 @@ public class IntakeAngleManager extends SubsystemBase {
         if (currentState != ControlState.AUTOMATIC || !autoActive) {
             currentState = ControlState.AUTOMATIC;
             autoActive = true;
-            targetAngleDeg = 0.0;
+            targetAngleDeg = Constants.IntakeConstants.ANGLE_MIN_DEG;
             loopsAtSetpoint = 0;
             pid.reset();
             SmartDashboard.putString("Intake/Status", "Movendo para ZERO");
@@ -82,7 +81,10 @@ public class IntakeAngleManager extends SubsystemBase {
         if (currentState != ControlState.AUTOMATIC || !autoActive) {
             currentState = ControlState.AUTOMATIC;
             autoActive = true;
-            targetAngleDeg = Preferences.getDouble("IntakeAngleTarget", targetAngleDeg);
+            targetAngleDeg = Math.max(
+                Constants.IntakeConstants.ANGLE_MIN_DEG,
+                Math.min(Preferences.getDouble("IntakeAngleTarget", targetAngleDeg),
+                         Constants.IntakeConstants.ANGLE_MAX_DEG));
             loopsAtSetpoint = 0;
             pid.reset();
             SmartDashboard.putString("Intake/Status", "Movendo para TARGET");
