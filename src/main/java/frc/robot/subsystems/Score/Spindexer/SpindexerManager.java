@@ -19,9 +19,17 @@ public class SpindexerManager extends SubsystemBase {
         SmartDashboard.putString("Spindexer/State", state.name());
     }
 
+    public void toggleSpin() {
+        if (state == SpindexerState.SPINNING) {
+            setState(SpindexerState.IDLE);
+        } else {
+            setState(SpindexerState.SPINNING);
+        }
+    }
+
     public void start() {
-    setState(SpindexerState.SPINNING);
-}
+        setState(SpindexerState.SPINNING);
+    }
 
     public void stop() {
         setState(SpindexerState.IDLE);
@@ -46,13 +54,10 @@ public class SpindexerManager extends SubsystemBase {
 
     @Override
     public void periodic() {
-
         switch (state) {
-
             case SPINNING:
                 spindexer.spinning();
                 break;
-
             case DISABLED:
             case IDLE:
             default:

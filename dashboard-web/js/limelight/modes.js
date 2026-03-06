@@ -3,7 +3,8 @@
 // ==========================
 const state = {
   lime4: { alinhador: 0, yaw: 0, teste1: 0 },
-  lime2: { alinhador: 0, yaw: 0, teste1: 0 }
+  lime2: { alinhador: 0, yaw: 0, teste1: 0 },
+  lime2plus: { yaw: 0, shooter: 0 }
 };
 
 // ==========================
@@ -45,6 +46,9 @@ function renderAll() {
   renderMode("alinhador-lime2", state.lime2.alinhador);
   renderMode("yaw-lime2",       state.lime2.yaw);
   renderMode("teste1-lime2",    state.lime2.teste1);
+
+  renderMode("yaw-lime2plus",     state.lime2plus.yaw);
+  renderMode("shooter-lime2plus", state.lime2plus.shooter);
 }
 
 // ==========================
@@ -91,13 +95,16 @@ function extractTempFromHw(hwArr) {
 const WS_URL = "ws://127.0.0.1:5810/nt/dashboard";
 
 // MODOS (publicados pelo Java -> NT -> nt3_ws)
-const TOPIC_AIMLOCK_LIME4 = "/Modes/AimLockLime4"; // 0/1
-const TOPIC_AIMLOCK_LIME2 = "/Modes/AimLockLime2"; // 0/1
-const TOPIC_ALIGN_LIME2   = "/Modes/AlignLime2";   // 0/1/2
+const TOPIC_AIMLOCK_LIME4     = "/Modes/AimLockLime4"; // 0/1
+const TOPIC_AIMLOCK_LIME2     = "/Modes/AimLockLime2"; // 0/1
+const TOPIC_ALIGN_LIME2       = "/Modes/AlignLime2";   // 0/1/2
+const TOPIC_AIMLOCK_LIME2PLUS = "/Modes/AimLockLime2Plus"; // 0/1
+const TOPIC_SHOOTER_LIME2PLUS = "/Modes/ShooterLime2Plus"; // 0/1/2
 
 // TEMP (publicados pela Limelight -> NT -> nt3_ws)
-const TOPIC_HW_LIME4 = "/limelight-front/hw";
-const TOPIC_HW_LIME2 = "/limelight-back/hw";
+const TOPIC_HW_LIME4     = "/limelight-front/hw";
+const TOPIC_HW_LIME2     = "/limelight-back/hw";
+const TOPIC_HW_LIME2PLUS = "/limelight-lime2plus/hw";
 
 function clampInt(v, min, max, fallback = min) {
   const n = Number(v);
@@ -165,6 +172,24 @@ function startWS() {
         setTemp("temp-lime2", t);
         return;
       }
+
+      if (topic === TOPIC_AIMLOCK_LIME2PLUS) {
+        state.lime2plus.yaw = clampInt(value, 0, 1, 0);
+        renderMode("yaw-lime2plus", state.lime2plus.yaw);
+        return;
+      }
+
+      if (topic === TOPIC_SHOOTER_LIME2PLUS) {
+        state.lime2plus.shooter = clampInt(value, 0, 1, 0);
+        renderMode("shooter-lime2plus", state.lime2plus.shooter);
+        return;
+      }
+
+      if (topic === TOPIC_HW_LIME2PLUS) {
+        const t = extractTempFromHw(value);
+        setTemp("temp-lime2plus", t);
+        return;
+      }
     };
 
     ws.onclose = () => {
@@ -187,4 +212,5 @@ function startWS() {
 renderAll();
 setTemp("temp-lime4", null);
 setTemp("temp-lime2", null);
+setTemp("temp-lime2plus", null);
 startWS();

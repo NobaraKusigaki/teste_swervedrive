@@ -44,10 +44,15 @@ TABLES_AND_KEYS = {
         "ta",
         "hw"
     ],
+    "limelight-lime2plus": [
+        "hw"
+    ],
     "Modes": [
         "AimLockLime4",
         "AimLockLime2",
-        "AlignLime2"
+        "AlignLime2",
+        "AimLockLime2Plus",
+        "ShooterLime2Plus"
     ]
 }
 

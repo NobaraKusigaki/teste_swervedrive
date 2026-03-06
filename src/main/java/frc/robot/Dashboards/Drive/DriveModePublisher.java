@@ -7,12 +7,27 @@ public class DriveModePublisher {
 
   private final IntegerPublisher aimModePub =
       NetworkTableInstance.getDefault()
-          .getIntegerTopic("/Modes/AimMode")
+          .getIntegerTopic("/Modes/AimLockLime2")
           .publish();
 
   private final IntegerPublisher alignModePub =
       NetworkTableInstance.getDefault()
-          .getIntegerTopic("/Modes/AlignMode")
+          .getIntegerTopic("/Modes/AlignLime2")
+          .publish();
+
+  private final IntegerPublisher aimLime4Pub =
+      NetworkTableInstance.getDefault()
+          .getIntegerTopic("/Modes/AimLockLime4")
+          .publish();
+
+  private final IntegerPublisher aimLime2PlusPub =
+      NetworkTableInstance.getDefault()
+          .getIntegerTopic("/Modes/AimLockLime2Plus")
+          .publish();
+
+  private final IntegerPublisher shooterLime2PlusPub =
+      NetworkTableInstance.getDefault()
+          .getIntegerTopic("/Modes/ShooterLime2Plus")
           .publish();
 
   public void publishAim(int mode) {
@@ -21,5 +36,17 @@ public class DriveModePublisher {
 
   public void publishAlign(int mode) {
     alignModePub.set(mode);
+  }
+
+  public void publishAimLime4(int mode) {
+    aimLime4Pub.set(mode);
+  }
+
+  public void publishAimLime2Plus(int mode) {
+    aimLime2PlusPub.set(mode);
+  }
+
+  public void publishShooterLime2Plus(int mode) {
+    shooterLime2PlusPub.set(mode);
   }
 }

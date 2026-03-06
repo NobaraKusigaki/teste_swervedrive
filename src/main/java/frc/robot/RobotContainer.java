@@ -9,18 +9,15 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Dashboards.Drive.DriveModePublisher;
 import frc.robot.Dashboards.RobotStress.DashboardPublisherStress;
 import frc.robot.Dashboards.RobotStress.RobotStressController;
 import frc.robot.Dashboards.RobotStress.RobotStressMonitor;
-import frc.robot.adl.ADLExecutor;
-import frc.robot.adl.ADLManager;
-import frc.robot.adl.HumanIntentSource;
-import frc.robot.adl.RobotContextProvider;
 import frc.robot.commands.auto_blocks.NamedCommandsRegistry;
 import frc.robot.commands.teleopDrive.DriveCommand;
 import frc.robot.commands.vision.AimAtTagCommand;
-import frc.robot.subsystems.Score.Angular.IntakeAngleManager;
 import frc.robot.subsystems.Score.Climb.ClimberManager;
+import frc.robot.subsystems.Score.Angular.IntakeAngleManager;
 import frc.robot.subsystems.Score.PreShooter.PreShooterManager;
 import frc.robot.subsystems.Score.PreShooter.PreShooterSubsystem;
 import frc.robot.subsystems.Score.Rollers.IntakeRollerManager;
@@ -64,15 +61,11 @@ public class RobotContainer {
   private final PreShooterManager preShooterManager;
   private final ClimberManager climberManager;
 
-  /* =========== ADL =========== */
-private final ADLExecutor adlExecutor;
-private final ADLManager adlManager;
-
-
   /* ================= DASHBOARD ================= */
   private final RobotStressMonitor stressMonitor;
   private final RobotStressController stressController;
   private final DashboardPublisherStress stressPublisher;
+  private final DriveModePublisher modePublisher;
 
   public RobotContainer() {
 
@@ -93,28 +86,19 @@ private final ADLManager adlManager;
     rollerSubsystem = new IntakeRollerSubsystem();
     spindexerSubsystem = new SpindexerSubsystem();
     preShooterSubsystem = new PreShooterSubsystem();
-    climberManager = new ClimberManager();
 
     /* ========= MANAGERS ========= */
     shooterManager = new ShooterManager(shooterSubsystem, vision);
     rollerManager = new IntakeRollerManager(rollerSubsystem);
     spindexerManager = new SpindexerManager(spindexerSubsystem);
     preShooterManager = new PreShooterManager(preShooterSubsystem, vision, shooterManager);
+    climberManager = new ClimberManager();
 
     /* ========= DASHBOARD ========= */
     stressMonitor = new RobotStressMonitor();
     stressController = new RobotStressController();
     stressPublisher = new DashboardPublisherStress();
-    /* ========= ADL ========= */
-   adlExecutor = new ADLExecutor(
-    intake, rollerManager, climberManager,
-    preShooterManager, shooterManager, spindexerManager  
-);
-   adlManager = new ADLManager(
-    new HumanIntentSource(),
-    new RobotContextProvider(),
-    adlExecutor
-);
+    modePublisher = new DriveModePublisher();
 
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
@@ -185,56 +169,56 @@ private final ADLManager adlManager;
     );
 
     logitech.button(3).onTrue(
-        new InstantCommand(intake::calibrateZero)
+        new InstantCommand(() -> intake.calibrateZero(), intake)
     );
 
     logitech.button(2).onTrue(
-        new InstantCommand(intake::calibrateTargetAngle)
+        new InstantCommand(() -> intake.calibrateTargetAngle(), intake)
     );
 
     /* ================= ROLLERS ================= */
 
     logitech.button(5).onTrue(
-        new InstantCommand(rollerManager::toggleIntake)
+        new InstantCommand(() -> rollerManager.toggleIntake(), rollerManager)
     );
 
     logitech.button(6).onTrue(
-        new InstantCommand(rollerManager::toggleOuttake)
+        new InstantCommand(() -> rollerManager.toggleOuttake(), rollerManager)
     );
 
     /* ================= MANUAL ANGLE ================= */
 
     new Trigger(() -> logitech.getRawAxis(2) > 0.04)
-        .onTrue(new InstantCommand(intake::setManual))
-        .whileTrue(new RunCommand(() -> intake.setManualOutput(0.3)))
-        .onFalse(new InstantCommand(intake::stop));
+        .onTrue(new InstantCommand(() -> intake.setManual(), intake))
+        .whileTrue(new RunCommand(() -> intake.setManualOutput(0.3), intake))
+        .onFalse(new InstantCommand(() -> intake.stop(), intake));
 
     new Trigger(() -> logitech.getRawAxis(3) > 0.04)
-        .onTrue(new InstantCommand(intake::setManual))
-        .whileTrue(new RunCommand(() -> intake.setManualOutput(-0.3)))
-        .onFalse(new InstantCommand(intake::stop));
+        .onTrue(new InstantCommand(() -> intake.setManual(), intake))
+        .whileTrue(new RunCommand(() -> intake.setManualOutput(-0.3), intake))
+        .onFalse(new InstantCommand(() -> intake.stop(), intake));
 
     /* ================= PRESHOOTER ================= */
 
     logitech.povLeft().onTrue(
-        new InstantCommand(spindexerManager::start)
+        new InstantCommand(() -> spindexerManager.toggleSpin(), spindexerManager)
     );
 
     logitech.povDown().onTrue(
-        new InstantCommand(preShooterManager::toggleManualFeed)
+        new InstantCommand(() -> preShooterManager.toggleManualFeed(), preShooterManager)
     );
 
     /* ================= SHOOTER ================= */
 
     logitech.povUp().onTrue(
-        new InstantCommand(shooterManager::toggleShooter)
+        new InstantCommand(() -> shooterManager.toggleShooter(), shooterManager)
     );
   }
 
   /* ================= AUTO ================= */
 
   public Command getAutonomousCommand() {
-    return new PathPlannerAuto("AutoRobotCenter");
+    return new PathPlannerAuto("AutoFix");
   }
 
   public void periodic() {
@@ -245,6 +229,12 @@ private final ADLManager adlManager;
     double chassisSpeed = drivebase.getRobotVelocity().vxMetersPerSecond;
 
     stressPublisher.publish(stressData, speedScale, chassisSpeed);
+
+    // Publish mode indicators to dashboard
+    modePublisher.publishAim(shooterManager.isEnabled() ? 1 : 0);
+    modePublisher.publishAlign(
+        preShooterManager.getMode() == PreShooterManager.ControlMode.AUTO_DISTANCE ? 1 : 0);
+    modePublisher.publishShooterLime2Plus(shooterManager.isEnabled() ? 1 : 0);
   }
 
   /* ================= GETTERS ================= */
@@ -261,8 +251,4 @@ private final ADLManager adlManager;
   public void setMotorBrake(boolean brake) {
     drivebase.setMotorBrake(brake);
   }
-
-  public ADLManager getAdlManager() {
-    return adlManager;
-}
 }
