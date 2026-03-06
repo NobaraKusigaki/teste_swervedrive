@@ -9,6 +9,9 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Dashboards.RobotStress.DashboardPublisherStress;
+import frc.robot.Dashboards.RobotStress.RobotStressController;
+import frc.robot.Dashboards.RobotStress.RobotStressMonitor;
 import frc.robot.adl.ADLExecutor;
 import frc.robot.adl.ADLManager;
 import frc.robot.adl.HumanIntentSource;
@@ -66,6 +69,11 @@ private final ADLExecutor adlExecutor;
 private final ADLManager adlManager;
 
 
+  /* ================= DASHBOARD ================= */
+  private final RobotStressMonitor stressMonitor;
+  private final RobotStressController stressController;
+  private final DashboardPublisherStress stressPublisher;
+
   public RobotContainer() {
 
     /* ========= CONTROLLERS ========= */
@@ -93,6 +101,10 @@ private final ADLManager adlManager;
     spindexerManager = new SpindexerManager(spindexerSubsystem);
     preShooterManager = new PreShooterManager(preShooterSubsystem, vision, shooterManager);
 
+    /* ========= DASHBOARD ========= */
+    stressMonitor = new RobotStressMonitor();
+    stressController = new RobotStressController();
+    stressPublisher = new DashboardPublisherStress();
     /* ========= ADL ========= */
    adlExecutor = new ADLExecutor(
     intake, rollerManager, climberManager,
@@ -222,8 +234,19 @@ private final ADLManager adlManager;
   /* ================= AUTO ================= */
 
   public Command getAutonomousCommand() {
-    return new PathPlannerAuto("AutoTaxiLeft");
-}
+    return new PathPlannerAuto("AutoRobotCenter");
+  }
+
+  public void periodic() {
+    var stressData = stressMonitor.generateData(drivebase);
+    stressController.update(stressData);
+
+    double speedScale = stressController.getSpeedScale();
+    double chassisSpeed = drivebase.getRobotVelocity().vxMetersPerSecond;
+
+    stressPublisher.publish(stressData, speedScale, chassisSpeed);
+  }
+
   /* ================= GETTERS ================= */
 
   public SwerveSubsystem getSwerveSubsystem() {
