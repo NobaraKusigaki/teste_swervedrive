@@ -17,7 +17,6 @@ import frc.robot.commands.auto_blocks.NamedCommandsRegistry;
 import frc.robot.commands.teleopDrive.DriveCommand;
 import frc.robot.commands.vision.AimLockCommand;
 import frc.robot.commands.vision.AlignWithPieceCommand;
-import frc.robot.commands.vision.AlignWithPieceCommand;
 import frc.robot.subsystems.Score.Climb.ClimberManager;
 import frc.robot.subsystems.Score.Angular.IntakeAngleManager;
 import frc.robot.subsystems.Score.PreShooter.PreShooterManager;
@@ -38,16 +37,12 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 
 public class RobotContainer {
 
-  /* ================= CONTROLLERS ================= */
   private final CommandPS5Controller controller;
   private final CommandJoystick logitech;
 
-  /* ================= INPUT SUPPLIERS ================= */
-  // FIX: Use lambdas so these return the current axis value each call
   private final DoubleSupplier xSupplier;
   private final DoubleSupplier ySupplier;
 
-  /* ================= SUBSYSTEMS ================= */
   private final SwerveSubsystem drivebase;
   private final ViewSubsystem vision;
   private final ShooterSubsystem shooterSubsystem;
@@ -56,19 +51,16 @@ public class RobotContainer {
   private final SpindexerSubsystem spindexerSubsystem;
   private final PreShooterSubsystem preShooterSubsystem;
 
-  /* ================= MANAGERS ================= */
   private final ShooterManager shooterManager;
   private final IntakeRollerManager rollerManager;
   private final SpindexerManager spindexerManager;
   private final PreShooterManager preShooterManager;
   private final ClimberManager climberManager;
 
-  /* ================= COMMANDS ================= */
   private final AimLockCommand aimLockFront;
   private final AimLockCommand aimLockBack;
   private final AlignWithPieceCommand alignWithPiece;
 
-  /* ================= DASHBOARD ================= */
   private final RobotStressMonitor stressMonitor;
   private final RobotStressController stressController;
   private final DashboardPublisherStress stressPublisher;
@@ -76,45 +68,36 @@ public class RobotContainer {
 
   public RobotContainer() {
 
-    /* ========= CONTROLLERS ========= */
     controller = new CommandPS5Controller(Constants.PS5_ID);
-    logitech = new CommandJoystick(Constants.LOGITECH_ID);
+    logitech   = new CommandJoystick(Constants.LOGITECH_ID);
 
-    // FIX: Wrap in lambdas — getLeftX()/getLeftY() return double, not DoubleSupplier
     xSupplier = () -> controller.getLeftX();
     ySupplier = () -> controller.getLeftY();
 
-    /* ========= SUBSYSTEMS ========= */
-    drivebase = new SwerveSubsystem(
-        new File(Filesystem.getDeployDirectory(), "swerve/neo"));
-    vision = new ViewSubsystem();
-    shooterSubsystem = new ShooterSubsystem();
-    intake = new IntakeAngleManager();
-    rollerSubsystem = new IntakeRollerSubsystem();
-    spindexerSubsystem = new SpindexerSubsystem();
+    drivebase           = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve/neo"));
+    vision              = new ViewSubsystem();
+    shooterSubsystem    = new ShooterSubsystem();
+    intake              = new IntakeAngleManager();
+    rollerSubsystem     = new IntakeRollerSubsystem();
+    spindexerSubsystem  = new SpindexerSubsystem();
     preShooterSubsystem = new PreShooterSubsystem();
 
-    /* ========= MANAGERS ========= */
-    shooterManager = new ShooterManager(shooterSubsystem, vision);
-    rollerManager = new IntakeRollerManager(rollerSubsystem);
+    shooterManager   = new ShooterManager(shooterSubsystem, vision);
+    rollerManager    = new IntakeRollerManager(rollerSubsystem);
     spindexerManager = new SpindexerManager(spindexerSubsystem);
     preShooterManager = new PreShooterManager(preShooterSubsystem, vision, shooterManager);
-    climberManager = new ClimberManager();
+    climberManager   = new ClimberManager();
 
-    /* ========= DASHBOARD ========= */
-    stressMonitor = new RobotStressMonitor();
+    stressMonitor   = new RobotStressMonitor();
     stressController = new RobotStressController();
     stressPublisher = new DashboardPublisherStress();
-    modePublisher = new DriveModePublisher();
+    modePublisher   = new DriveModePublisher();
 
-    /* ========= COMMANDS ========= */
-    aimLockFront    = new AimLockCommand(drivebase, vision, AimLockCommand.CameraSide.FRONT, xSupplier, ySupplier);
-    aimLockBack     = new AimLockCommand(drivebase, vision, AimLockCommand.CameraSide.BACK,  xSupplier, ySupplier);
-    alignWithPiece  = new AlignWithPieceCommand(drivebase, vision);
+    aimLockFront   = new AimLockCommand(drivebase, vision, AimLockCommand.CameraSide.FRONT, xSupplier, ySupplier);
+    aimLockBack    = new AimLockCommand(drivebase, vision, AimLockCommand.CameraSide.BACK,  xSupplier, ySupplier);
+    alignWithPiece = new AlignWithPieceCommand(drivebase, vision);
 
-    configureBindings();
-    DriverStation.silenceJoystickConnectionWarning(true);
-
+    // ← REGISTRO ANTES DO configureBindings e ANTES do PathPlannerAuto
     NamedCommandsRegistry.registerAll(
         drivebase,
         vision,
@@ -124,79 +107,36 @@ public class RobotContainer {
         climberManager
     );
 
-    // Tag selection is deferred to autonomousInit/teleopInit via refreshTagSelection()
-    // so that DriverStation.getAlliance() is guaranteed to be available
+    configureBindings();
+    DriverStation.silenceJoystickConnectionWarning(true);
   }
 
   private void configureBindings() {
 
-    /* ==================== =================== ====================
-     * ==================== PILOTO DE LOCOMOÇÃO ====================
-       =================== ==================== ==================== */
-
-    // Default drive command using fixed DoubleSuppliers
     drivebase.setDefaultCommand(
         new DriveCommand(
             drivebase,
             () -> {
-                if (controller.povUp().getAsBoolean()) return 0.6;
-                if (controller.povDown().getAsBoolean()) return -0.6;
-                return ySupplier.getAsDouble(); // FIX: call getAsDouble()
+                if (controller.povUp().getAsBoolean())    return  0.6;
+                if (controller.povDown().getAsBoolean())  return -0.6;
+                return ySupplier.getAsDouble();
             },
             () -> {
                 if (controller.povRight().getAsBoolean()) return -0.6;
-                if (controller.povLeft().getAsBoolean()) return 0.6;
-                return xSupplier.getAsDouble(); // FIX: call getAsDouble()
+                if (controller.povLeft().getAsBoolean())  return  0.6;
+                return xSupplier.getAsDouble();
             },
             () -> controller.getRightX()
         )
     );
 
-    // Zero gyro relative to alliance
-    controller.options().onTrue(
-        Commands.runOnce(drivebase::zeroGyroWithAlliance)
-    );
-
-    // Aim at tag with back camera (toggle)
+    controller.options().onTrue(Commands.runOnce(drivebase::zeroGyroWithAlliance));
     controller.square().toggleOnTrue(aimLockBack);
-
-    // Aim at tag with front camera / Lime 4 (toggle)
     controller.circle().toggleOnTrue(aimLockFront);
-
-    // Align with game piece using AI (toggle)
     controller.cross().toggleOnTrue(alignWithPiece);
 
-    /* ================= ANGLE ================= */
-
-    logitech.button(4).onTrue(
-        new InstantCommand(() -> {
-          if (intake.getCurrentState() != IntakeAngleManager.ControlState.AUTOMATIC) {
-            intake.moveToTargetPosition();
-          } else {
-            intake.moveToZeroPosition();
-          }
-        })
-    );
-
-    logitech.button(3).onTrue(
-        new InstantCommand(() -> intake.calibrateZero(), intake)
-    );
-
-    logitech.button(2).onTrue(
-        new InstantCommand(() -> intake.calibrateTargetAngle(), intake)
-    );
-
-    /* ================= ROLLERS ================= */
-
-    logitech.button(5).onTrue(
-        new InstantCommand(() -> rollerManager.toggleIntake(), rollerManager)
-    );
-
-    logitech.button(6).onTrue(
-        new InstantCommand(() -> rollerManager.toggleOuttake(), rollerManager)
-    );
-
-    /* ================= MANUAL ANGLE ================= */
+    logitech.button(5).onTrue(new InstantCommand(() -> rollerManager.toggleIntake(),   rollerManager));
+    logitech.button(6).onTrue(new InstantCommand(() -> rollerManager.toggleOuttake(),  rollerManager));
 
     new Trigger(() -> logitech.getRawAxis(2) > 0.04)
         .onTrue(new InstantCommand(() -> intake.setManual(), intake))
@@ -208,49 +148,48 @@ public class RobotContainer {
         .whileTrue(new RunCommand(() -> intake.setManualOutput(-0.3), intake))
         .onFalse(new InstantCommand(() -> intake.stop(), intake));
 
-    /* ================= PRESHOOTER ================= */
+    logitech.povLeft().onTrue(new InstantCommand(() -> spindexerManager.toggleSpin(),       spindexerManager));
+    logitech.povDown().onTrue(new InstantCommand(() -> preShooterManager.toggleManualFeed(), preShooterManager));
+    logitech.povUp().onTrue(new InstantCommand(  () -> shooterManager.toggleShooter(),       shooterManager));
 
-    logitech.povLeft().onTrue(
-        new InstantCommand(() -> spindexerManager.toggleSpin(), spindexerManager)
-    );
+    logitech.button(4)
+        .onTrue(new InstantCommand(() -> climberManager.setManual(), climberManager))
+        .whileTrue(new InstantCommand(() -> climberManager.setClimbManual(-0.3), climberManager))
+        .onFalse(new InstantCommand(() -> climberManager.setStopManualClimb()));
 
-    logitech.povDown().onTrue(
-        new InstantCommand(() -> preShooterManager.toggleManualFeed(), preShooterManager)
-    );
-
-    /* ================= SHOOTER ================= */
-
-    logitech.povUp().onTrue(
-        new InstantCommand(() -> shooterManager.toggleShooter(), shooterManager)
-    );
-
-    /* ================= CLIMB ================= */
-
-    logitech.povUpRight().onTrue(
-      new InstantCommand(() -> climberManager.setClimbManual(0.8), climberManager)
-    );
-
-    logitech.povDownLeft().onTrue(
-      new InstantCommand(() -> climberManager.setClimbManual(-0.8), climberManager)
-    );
+    logitech.button(1)
+        .whileTrue(new InstantCommand(() -> climberManager.setManual(), climberManager))
+        .whileTrue(new InstantCommand(() -> climberManager.setClimbManual(0.3), climberManager))
+        .onFalse(new InstantCommand(() -> climberManager.setStopManualClimb()));
   }
 
-  /* ================= AUTO ================= */
-
+  // lazy — só instancia quando o auto realmente começa
   public Command getAutonomousCommand() {
-    return new PathPlannerAuto("AutoTaxiHUB");
-  }
+    return Commands.sequence(
+
+        new PathPlannerAuto("AutoRobotRight"),
+
+        Commands.runOnce(() -> shooterManager.enableAutoFixed(5000)),
+        Commands.waitSeconds(1),
+        Commands.runOnce(() -> preShooterManager.enableAuto()),
+        Commands.waitSeconds(0.1),
+        Commands.runOnce(() -> spindexerManager.start()),
+        Commands.waitSeconds(3.0),
+        Commands.runOnce(() -> shooterManager.disable()),
+        Commands.runOnce(() -> preShooterManager.stop()),
+        Commands.runOnce(() -> spindexerManager.stop())
+    );
+}
 
   public void periodic() {
-    var stressData = stressMonitor.generateData(drivebase);
+    var stressData   = stressMonitor.generateData(drivebase);
     stressController.update(stressData);
 
-    double speedScale = stressController.getSpeedScale();
+    double speedScale   = stressController.getSpeedScale();
     double chassisSpeed = drivebase.getRobotVelocity().vxMetersPerSecond;
 
     stressPublisher.publish(stressData, speedScale, chassisSpeed);
 
-    // Publish mode indicators to dashboard
     modePublisher.publishAim(aimLockBack.isActive() ? 1 : 0);
     modePublisher.publishAlign(
         preShooterManager.getMode() == PreShooterManager.ControlMode.AUTO_DISTANCE ? 1 : 0);
@@ -259,11 +198,7 @@ public class RobotContainer {
     modePublisher.publishAlignPiece(alignWithPiece.isActive() ? 1 : 0);
   }
 
-  /* ================= GETTERS ================= */
-
-  public SwerveSubsystem getSwerveSubsystem() {
-    return drivebase;
-  }
+  public SwerveSubsystem getSwerveSubsystem() { return drivebase; }
 
   public void refreshTagSelection() {
     vision.selectAllHubTags();

@@ -34,19 +34,24 @@ private final SparkMaxConfig cfg2;
     cfg2 = new SparkMaxConfig();
     cfg2.idleMode(IdleMode.kBrake)
     .smartCurrentLimit(40)
-    .inverted(true)
-    .follow(climb_left);
+    .inverted(true);
+
 
     climb_right.configure(
         cfg2, 
         ResetMode.kResetSafeParameters, 
         PersistMode.kPersistParameters);
+
+   climb_left.configure(cfg1, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+
+
   }
 
 
   public void setClimbPower(double power) {
     climb_left.set(power);
-    // climb_right follows climb_left automatically via follower config
+   climb_right.set(power);
   } 
 
   public void stopClimb() {

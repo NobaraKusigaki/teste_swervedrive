@@ -22,60 +22,45 @@ public class PreShooterManager extends SubsystemBase {
 
     private PreShooterState state = PreShooterState.IDLE;
     private ControlMode mode = ControlMode.MANUAL;
+    private boolean autoMode = false; // true durante auto — ignora requisito de alinhamento
 
     private final PreShooterSubsystem preShooter;
     private final ViewSubsystem vision;
     private final ShooterManager shooterManager;
 
     public PreShooterManager(PreShooterSubsystem preShooter, ViewSubsystem vision, ShooterManager shooterManager) {
-        this.preShooter = preShooter;
-        this.vision = vision;
+        this.preShooter    = preShooter;
+        this.vision        = vision;
         this.shooterManager = shooterManager;
     }
 
-    // ================= MODE =================
-
     public void toggleMode() {
-        mode = (mode == ControlMode.MANUAL)
-                ? ControlMode.AUTO_DISTANCE
-                : ControlMode.MANUAL;
-
+        mode  = (mode == ControlMode.MANUAL) ? ControlMode.AUTO_DISTANCE : ControlMode.MANUAL;
         state = PreShooterState.IDLE;
         SmartDashboard.putString("PreShooter/Mode", mode.name());
     }
 
-    public ControlMode getMode() {
-        return mode;
-    }
-
-    // ================= TELEOP =================
+    public ControlMode getMode() { return mode; }
 
     public void toggleManualFeed() {
-
         if (mode != ControlMode.MANUAL) return;
-
-        if (state == PreShooterState.ARMED) {
-            state = PreShooterState.IDLE;
-        } else {
-            state = PreShooterState.ARMED;
-        }
+        state = (state == PreShooterState.ARMED) ? PreShooterState.IDLE : PreShooterState.ARMED;
     }
 
-    // ================= AUTO =================
-
+    // chamado pelo NamedCommand no auto
     public void enableAuto() {
-        mode = ControlMode.AUTO_DISTANCE;
-        state = PreShooterState.IDLE;
+        mode     = ControlMode.AUTO_DISTANCE;
+        autoMode = true;
+        state    = PreShooterState.ARMED; // alimenta assim que shooter estiver no speed
     }
 
     public void stop() {
-        state = PreShooterState.IDLE;
+        state    = PreShooterState.IDLE;
+        autoMode = false;
         preShooter.stop();
     }
 
-    public PreShooterState getState() {
-        return state;
-    }
+    public PreShooterState getState() { return state; }
 
     @Override
     public void periodic() {
@@ -85,36 +70,36 @@ public class PreShooterManager extends SubsystemBase {
             return;
         }
 
-        // ===== AUTO MODE =====
         if (mode == ControlMode.AUTO_DISTANCE) {
-
-            boolean tagValid = vision.hasValidFrontTarget();
-
-            boolean aligned =
-                Math.abs(vision.getFrontTxRad())
-                < Math.toRadians(1.2);
-
-            double distance = vision.getFrontDistanceToTag();
-
-            boolean validDistance = distance != Double.MAX_VALUE;
 
             boolean shooterReady = shooterManager.isAtSpeed();
 
-            if (tagValid && aligned && shooterReady && validDistance) {
-                state = PreShooterState.AUTO_FEEDING;
+            if (autoMode) {
+                // no auto só espera o shooter estar no speed, sem exigir alinhamento
+                if (shooterReady) {
+                    state = PreShooterState.AUTO_FEEDING;
+                } else {
+                    state = PreShooterState.ARMED; // aguarda, não volta para IDLE
+                }
             } else {
-                state = PreShooterState.IDLE;
+                // teleop — exige alinhamento completo
+                boolean tagValid      = vision.hasValidFrontTarget();
+                boolean aligned       = Math.abs(vision.getFrontTxRad()) < Math.toRadians(1.2);
+                boolean validDistance = vision.getFrontDistanceToTag() != Double.MAX_VALUE;
+
+                if (tagValid && aligned && shooterReady && validDistance) {
+                    state = PreShooterState.AUTO_FEEDING;
+                } else {
+                    state = PreShooterState.IDLE;
+                }
             }
         }
 
-        // ===== EXECUTION =====
         switch (state) {
-
             case ARMED:
             case AUTO_FEEDING:
                 preShooter.feed();
                 break;
-
             case DISABLED:
             case IDLE:
             default:
@@ -123,6 +108,6 @@ public class PreShooterManager extends SubsystemBase {
         }
 
         SmartDashboard.putString("PreShooter/State", state.name());
-        SmartDashboard.putString("PreShooter/Mode", mode.name());
+        SmartDashboard.putString("PreShooter/Mode",  mode.name());
     }
 }

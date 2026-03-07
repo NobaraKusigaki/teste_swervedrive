@@ -20,6 +20,9 @@ public class ShooterManager extends SubsystemBase {
 
     private double lastValidDistance = 0.0;
 
+    private boolean fixedRPMMode = false;
+    private double fixedRPM = 0.0;
+
     // Tabela de interpolação da WPILib
     private final InterpolatingDoubleTreeMap rpmTable = new InterpolatingDoubleTreeMap();
 
@@ -29,11 +32,11 @@ public class ShooterManager extends SubsystemBase {
 
         // Configuração da tabela: (Distância, RPM)
         // O próprio mapa cuida da interpolação linear e dos limites (clamping)
-        rpmTable.put(1.0, 3400.0);
-        rpmTable.put(2.0, 3700.0);
-        rpmTable.put(2.5, 4000.0);
-        rpmTable.put(3.0, 4300.0);
-        rpmTable.put(3.5, 4600.0);
+        rpmTable.put(1.0, 5000.0);
+        rpmTable.put(2.0, 5000.0);
+        rpmTable.put(2.5, 5000.0);
+        rpmTable.put(3.0, 5000.0);
+        rpmTable.put(3.5, 5000.0);
         rpmTable.put(4.0, 5000.0);
     }
 
@@ -71,6 +74,20 @@ public class ShooterManager extends SubsystemBase {
         return state;
     }
 
+
+    public void enableAutoFixed(double rpm) {
+    fixedRPMMode = true;
+    fixedRPM = rpm;
+    if (state != ShooterState.DISABLED) {
+        state = ShooterState.SPINNING;
+    }
+}
+
+public void stop() {
+    state = ShooterState.IDLE;
+    fixedRPMMode = false;
+}
+
     @Override
     public void periodic() {
         
@@ -88,7 +105,7 @@ public class ShooterManager extends SubsystemBase {
         }
 
         // Obtém o RPM interpolado automaticamente
-        double rpm = rpmTable.get(lastValidDistance);
+        double rpm = fixedRPMMode ? fixedRPM : rpmTable.get(lastValidDistance);
 
         shooter.setTargetRPM(rpm);
 

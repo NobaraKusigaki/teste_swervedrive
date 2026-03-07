@@ -1,22 +1,29 @@
 "use strict";
 
-import { onNTMessage } from "../ws.js";
-
+// ==========================
+// STATE
+// ==========================
 const state = {
-  lime4: { yaw: 0 },
-  lime2: { yaw: 0, alignPiece: 0 },
+  lime4:     { yaw: 0 },
+  lime2:     { yaw: 0, alignPiece: 0 },
   lime2plus: { yaw: 0, shooter: 0 }
 };
 
+// ==========================
+// NT TOPICS
+// ==========================
 const TOPIC_AIMLOCK_LIME4     = "/Modes/AimLockLime4";
 const TOPIC_AIMLOCK_LIME2     = "/Modes/AimLockLime2";
-const TOPIC_ALIGN_LIME2       = "/Modes/AlignLime2";
 const TOPIC_AIMLOCK_LIME2PLUS = "/Modes/AimLockLime2Plus";
 const TOPIC_SHOOTER_LIME2PLUS = "/Modes/ShooterLime2Plus";
+const TOPIC_ALIGN_PIECE       = "/Modes/AlignPiece";
 const TOPIC_HW_LIME4          = "/limelight-front/hw";
 const TOPIC_HW_LIME2          = "/limelight-back/hw";
 const TOPIC_HW_LIME2PLUS      = "/limelight-lime2plus/hw";
 
+// ==========================
+// HELPERS
+// ==========================
 const TEMP_WARN_C = 70;
 
 function clampInt(v, min, max) {
@@ -37,77 +44,37 @@ function renderMode(id, value) {
 }
 
 function renderAll() {
-  renderMode("yaw-lime4",          state.lime4.yaw);
-  renderMode("yaw-lime2",          state.lime2.yaw);
-  renderMode("align-piece",        state.lime2.alignPiece);
-  renderMode("yaw-lime2plus",      state.lime2plus.yaw);
-  renderMode("shooter-lime2plus",  state.lime2plus.shooter);
+  renderMode("yaw-lime4",         state.lime4.yaw);
+  renderMode("yaw-lime2",         state.lime2.yaw);
+  renderMode("align-piece",       state.lime2.alignPiece);
+  renderMode("yaw-lime2plus",     state.lime2plus.yaw);
+  renderMode("shooter-lime2plus", state.lime2plus.shooter);
 }
-
-// ==========================
-// TEMPERATURA LIMELIGHT (UI)
-// ==========================
-const TEMP_WARN_C = 70;
 
 function setTemp(elementId, tempC) {
   const el = document.getElementById(elementId);
   if (!el) return;
-
   const t = Number(tempC);
   if (!Number.isFinite(t)) {
     el.textContent = "Temp: --°C";
     el.classList.remove("warn");
     return;
   }
-
   const warn = t >= TEMP_WARN_C;
   el.textContent = `Temp: ${t.toFixed(0)}°C${warn ? " ⚠️" : ""}`;
   el.classList.toggle("warn", warn);
 }
 
-/**
- * Limelight "hw" é um array numérico de status de hardware.
- * O layout pode variar por modelo/firmware, então tentamos:
- *  - preferir o último valor (muito comum ser temp/board)
- *  - fallback para índice 1 (muito comum ser cpuTemp)
- */
 function extractTempFromHw(hwArr) {
   if (!Array.isArray(hwArr)) return null;
-
-  // formato oficial: [temp, fps, ...]
   const temp = Number(hwArr[0]);
-  if (Number.isFinite(temp)) return temp;
-
-  return null;
+  return Number.isFinite(temp) ? temp : null;
 }
 
-
 // ==========================
-// WEBSOCKET (nt3_ws.py -> browser)
+// WEBSOCKET
 // ==========================
 const WS_URL = "ws://127.0.0.1:5810/nt/dashboard";
-
-// MODOS (publicados pelo Java -> NT -> nt3_ws)
-const TOPIC_AIMLOCK_LIME4     = "/Modes/AimLockLime4";
-const TOPIC_AIMLOCK_LIME2     = "/Modes/AimLockLime2";
-const TOPIC_ALIGN_LIME2       = "/Modes/AlignLime2";
-const TOPIC_AIMLOCK_LIME2PLUS = "/Modes/AimLockLime2Plus";
-const TOPIC_SHOOTER_LIME2PLUS = "/Modes/ShooterLime2Plus";
-const TOPIC_ALIGN_PIECE       = "/Modes/AlignPiece";
-
-// TEMP (publicados pela Limelight -> NT -> nt3_ws)
-const TOPIC_HW_LIME4     = "/limelight-front/hw";
-const TOPIC_HW_LIME2     = "/limelight-back/hw";
-const TOPIC_HW_LIME2PLUS = "/limelight-lime2plus/hw";
-
-function clampInt(v, min, max, fallback = min) {
-  const n = Number(v);
-  if (!Number.isFinite(n)) return fallback;
-  const i = Math.trunc(n);
-  if (i < min) return min;
-  if (i > max) return max;
-  return i;
-}
 
 function startWS() {
   let ws;
@@ -128,62 +95,56 @@ function startWS() {
 
       const topic = msg.topic;
       const value = msg.value;
-
       if (value === null || value === undefined) return;
 
       // -------------------------
       // MODOS
       // -------------------------
       if (topic === TOPIC_AIMLOCK_LIME4) {
-        state.lime4.yaw = clampInt(value, 0, 1, 0);
+        state.lime4.yaw = clampInt(value, 0, 1);
         renderMode("yaw-lime4", state.lime4.yaw);
         return;
       }
 
       if (topic === TOPIC_AIMLOCK_LIME2) {
-        state.lime2.yaw = clampInt(value, 0, 1, 0);
+        state.lime2.yaw = clampInt(value, 0, 1);
         renderMode("yaw-lime2", state.lime2.yaw);
         return;
       }
 
-      // TOPIC_ALIGN_LIME2 retired — element removed from HTML
-
-      // -------------------------
-      // TEMPERATURA
-      // -------------------------
-      if (topic === TOPIC_HW_LIME4) {
-        const t = extractTempFromHw(value);
-        setTemp("temp-lime4", t);
-        return;
-      }
-
-      if (topic === TOPIC_HW_LIME2) {
-        const t = extractTempFromHw(value);
-        setTemp("temp-lime2", t);
-        return;
-      }
-
       if (topic === TOPIC_AIMLOCK_LIME2PLUS) {
-        state.lime2plus.yaw = clampInt(value, 0, 1, 0);
+        state.lime2plus.yaw = clampInt(value, 0, 1);
         renderMode("yaw-lime2plus", state.lime2plus.yaw);
         return;
       }
 
       if (topic === TOPIC_SHOOTER_LIME2PLUS) {
-        state.lime2plus.shooter = clampInt(value, 0, 1, 0);
+        state.lime2plus.shooter = clampInt(value, 0, 1);
         renderMode("shooter-lime2plus", state.lime2plus.shooter);
         return;
       }
 
-      if (topic === TOPIC_HW_LIME2PLUS) {
-        const t = extractTempFromHw(value);
-        setTemp("temp-lime2plus", t);
+      if (topic === TOPIC_ALIGN_PIECE) {
+        state.lime2.alignPiece = clampInt(value, 0, 1);
+        renderMode("align-piece", state.lime2.alignPiece);
         return;
       }
 
-      if (topic === TOPIC_ALIGN_PIECE) {
-        state.lime2.alignPiece = clampInt(value, 0, 1, 0);
-        renderMode("align-piece", state.lime2.alignPiece);
+      // -------------------------
+      // TEMPERATURA
+      // -------------------------
+      if (topic === TOPIC_HW_LIME4) {
+        setTemp("temp-lime4", extractTempFromHw(value));
+        return;
+      }
+
+      if (topic === TOPIC_HW_LIME2) {
+        setTemp("temp-lime2", extractTempFromHw(value));
+        return;
+      }
+
+      if (topic === TOPIC_HW_LIME2PLUS) {
+        setTemp("temp-lime2plus", extractTempFromHw(value));
         return;
       }
     };
@@ -208,3 +169,4 @@ function startWS() {
 renderAll();
 setTemp("temp-lime4", null);
 setTemp("temp-lime2plus", null);
+startWS();

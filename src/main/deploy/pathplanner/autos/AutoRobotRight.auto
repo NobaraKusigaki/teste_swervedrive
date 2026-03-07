@@ -15,12 +15,6 @@
           "data": {
             "waitTime": 4.0
           }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "TO_TOWER_BLUE 1"
-          }
         }
       ]
     }
