@@ -89,7 +89,8 @@ TABLES_AND_KEYS = {
         "AimLockLime2",
         "AlignLime2",
         "AimLockLime2Plus",
-        "ShooterLime2Plus"
+        "ShooterLime2Plus",
+        "AlignPiece"
     ]
 }
 
