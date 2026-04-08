@@ -1,5 +1,10 @@
 "use strict";
 
+// modes.js now uses the shared WebSocket from ws.js instead of opening
+// its own connection, which previously caused two simultaneous WS connections
+// on the limelight page and potential race conditions on reconnect.
+import { onNTMessage } from "../ws.js";
+
 // ==========================
 // STATE
 // ==========================
@@ -72,96 +77,51 @@ function extractTempFromHw(hwArr) {
 }
 
 // ==========================
-// WEBSOCKET
+// NT MESSAGE HANDLER
+// (shared connection via ws.js)
 // ==========================
-const WS_URL = "ws://127.0.0.1:5900/nt/dashboard";
+onNTMessage((topic, value) => {
+  if (value === null || value === undefined) return;
 
-function startWS() {
-  let ws;
-  let retryMs = 250;
+  switch (topic) {
+    case TOPIC_AIMLOCK_LIME4:
+      state.lime4.yaw = clampInt(value, 0, 1);
+      renderMode("yaw-lime4", state.lime4.yaw);
+      break;
 
-  const connect = () => {
-    ws = new WebSocket(WS_URL);
+    case TOPIC_AIMLOCK_LIME2:
+      state.lime2.yaw = clampInt(value, 0, 1);
+      renderMode("yaw-lime2", state.lime2.yaw);
+      break;
 
-    ws.onopen = () => {
-      console.log("[modes] WS conectado:", WS_URL);
-      retryMs = 250;
-    };
+    case TOPIC_AIMLOCK_LIME2PLUS:
+      state.lime2plus.yaw = clampInt(value, 0, 1);
+      renderMode("yaw-lime2plus", state.lime2plus.yaw);
+      break;
 
-    ws.onmessage = (ev) => {
-      let msg;
-      try { msg = JSON.parse(ev.data); } catch { return; }
-      if (!msg || typeof msg.topic !== "string") return;
+    case TOPIC_SHOOTER_LIME2PLUS:
+      state.lime2plus.shooter = clampInt(value, 0, 1);
+      renderMode("shooter-lime2plus", state.lime2plus.shooter);
+      break;
 
-      const topic = msg.topic;
-      const value = msg.value;
-      if (value === null || value === undefined) return;
+    case TOPIC_ALIGN_PIECE:
+      state.lime2.alignPiece = clampInt(value, 0, 1);
+      renderMode("align-piece", state.lime2.alignPiece);
+      break;
 
-      // -------------------------
-      // MODOS
-      // -------------------------
-      if (topic === TOPIC_AIMLOCK_LIME4) {
-        state.lime4.yaw = clampInt(value, 0, 1);
-        renderMode("yaw-lime4", state.lime4.yaw);
-        return;
-      }
+    case TOPIC_HW_LIME4:
+      setTemp("temp-lime4", extractTempFromHw(value));
+      break;
 
-      if (topic === TOPIC_AIMLOCK_LIME2) {
-        state.lime2.yaw = clampInt(value, 0, 1);
-        renderMode("yaw-lime2", state.lime2.yaw);
-        return;
-      }
+    case TOPIC_HW_LIME2:
+      setTemp("temp-lime2", extractTempFromHw(value));
+      break;
 
-      if (topic === TOPIC_AIMLOCK_LIME2PLUS) {
-        state.lime2plus.yaw = clampInt(value, 0, 1);
-        renderMode("yaw-lime2plus", state.lime2plus.yaw);
-        return;
-      }
-
-      if (topic === TOPIC_SHOOTER_LIME2PLUS) {
-        state.lime2plus.shooter = clampInt(value, 0, 1);
-        renderMode("shooter-lime2plus", state.lime2plus.shooter);
-        return;
-      }
-
-      if (topic === TOPIC_ALIGN_PIECE) {
-        state.lime2.alignPiece = clampInt(value, 0, 1);
-        renderMode("align-piece", state.lime2.alignPiece);
-        return;
-      }
-
-      // -------------------------
-      // TEMPERATURA
-      // -------------------------
-      if (topic === TOPIC_HW_LIME4) {
-        setTemp("temp-lime4", extractTempFromHw(value));
-        return;
-      }
-
-      if (topic === TOPIC_HW_LIME2) {
-        setTemp("temp-lime2", extractTempFromHw(value));
-        return;
-      }
-
-      if (topic === TOPIC_HW_LIME2PLUS) {
-        setTemp("temp-lime2plus", extractTempFromHw(value));
-        return;
-      }
-    };
-
-    ws.onclose = () => {
-      console.warn("[modes] WS caiu. Reconectando...");
-      setTimeout(connect, retryMs);
-      retryMs = Math.min(retryMs * 2, 3000);
-    };
-
-    ws.onerror = () => {
-      try { ws.close(); } catch {}
-    };
-  };
-
-  connect();
-}
+    case TOPIC_HW_LIME2PLUS:
+      setTemp("temp-lime2plus", extractTempFromHw(value));
+      break;
+  }
+});
 
 // ==========================
 // INIT
@@ -169,4 +129,3 @@ function startWS() {
 renderAll();
 setTemp("temp-lime4", null);
 setTemp("temp-lime2plus", null);
-startWS();

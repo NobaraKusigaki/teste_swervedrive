@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Dashboards.Drive.DriveModePublisher;
@@ -37,7 +36,7 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 public class RobotContainer {
 
   private final CommandPS5Controller controller;
-  private final CommandJoystick logitech;
+  private final CommandPS5Controller logitech;
 
   private final DoubleSupplier xSupplier;
   private final DoubleSupplier ySupplier;
@@ -68,7 +67,7 @@ public class RobotContainer {
   public RobotContainer() {
 
     controller = new CommandPS5Controller(Constants.PS5_ID);
-    logitech   = new CommandJoystick(Constants.LOGITECH_ID);
+    logitech   = new CommandPS5Controller(Constants.LOGITECH_ID);
 
     xSupplier = () -> controller.getLeftX();
     ySupplier = () -> controller.getLeftY();
@@ -81,16 +80,16 @@ public class RobotContainer {
     spindexerSubsystem  = new SpindexerSubsystem();
     preShooterSubsystem = new PreShooterSubsystem();
 
-    shooterManager   = new ShooterManager(shooterSubsystem);
-    rollerManager    = new IntakeRollerManager(rollerSubsystem);
-    spindexerManager = new SpindexerManager(spindexerSubsystem);
+    shooterManager    = new ShooterManager(shooterSubsystem);
+    rollerManager     = new IntakeRollerManager(rollerSubsystem);
+    spindexerManager  = new SpindexerManager(spindexerSubsystem);
     preShooterManager = new PreShooterManager(preShooterSubsystem, vision, shooterManager);
-    climberManager   = new ClimberManager();
+    climberManager    = new ClimberManager();
 
-    stressMonitor   = new RobotStressMonitor();
+    stressMonitor    = new RobotStressMonitor();
     stressController = new RobotStressController();
-    stressPublisher = new DashboardPublisherStress();
-    modePublisher   = new DriveModePublisher();
+    stressPublisher  = new DashboardPublisherStress();
+    modePublisher    = new DriveModePublisher();
 
     aimLockFront   = new AimLockCommand(drivebase, vision, AimLockCommand.CameraSide.FRONT, xSupplier, ySupplier);
     aimLockBack    = new AimLockCommand(drivebase, vision, AimLockCommand.CameraSide.BACK,  xSupplier, ySupplier);
@@ -105,51 +104,43 @@ public class RobotContainer {
     drivebase.setDefaultCommand(
         new DriveCommand(
             drivebase,
-            () -> {
-                if (controller.povUp().getAsBoolean())    return  0.6;
-                if (controller.povDown().getAsBoolean())  return -0.6;
-                return ySupplier.getAsDouble();
-            },
-            () -> {
-                if (controller.povRight().getAsBoolean()) return -0.6;
-                if (controller.povLeft().getAsBoolean())  return  0.6;
-                return xSupplier.getAsDouble();
-            },
+            () -> ySupplier.getAsDouble(),
+            () -> xSupplier.getAsDouble(),
             () -> controller.getRightX()
         )
     );
 
-    controller.options().onTrue(Commands.runOnce(drivebase::zeroGyroWithAlliance));
-    controller.square().toggleOnTrue(aimLockBack);
-    controller.circle().toggleOnTrue(aimLockFront);
-    controller.cross().toggleOnTrue(alignWithPiece);
+    // --- Main controller (PS5) ---
 
-    logitech.button(5).onTrue(new InstantCommand(() -> rollerManager.toggleIntake(),   rollerManager));
-    logitech.button(6).onTrue(new InstantCommand(() -> rollerManager.toggleOuttake(),  rollerManager));
+    controller.L1().onTrue(new InstantCommand(() -> rollerManager.toggleIntake(),  rollerManager));
+    controller.R1().onTrue(new InstantCommand(() -> rollerManager.toggleOuttake(), rollerManager));
 
-    new Trigger(() -> logitech.getRawAxis(2) > 0.0)
+    // Intake angle - L2/R2 on main controller (no conflict now)
+    new Trigger(() -> controller.getL2Axis() > 0.04)
         .onTrue(new InstantCommand(() -> intake.setManual(), intake))
         .whileTrue(new RunCommand(() -> intake.setManualOutput(0.3), intake))
         .onFalse(new InstantCommand(() -> intake.stop(), intake));
 
-    new Trigger(() -> logitech.getRawAxis(3) > 0.04)
+    new Trigger(() -> controller.getR2Axis() > 0.04)
         .onTrue(new InstantCommand(() -> intake.setManual(), intake))
         .whileTrue(new RunCommand(() -> intake.setManualOutput(-0.3), intake))
         .onFalse(new InstantCommand(() -> intake.stop(), intake));
 
-    logitech.povLeft().onTrue(new InstantCommand(() -> spindexerManager.toggleSpin(),       spindexerManager));
-    logitech.povDown().onTrue(new InstantCommand(() -> preShooterManager.toggleManualFeed(), preShooterManager));
-    logitech.povRight().onTrue(new InstantCommand(() -> preShooterManager.toggleReverseFeed(), preShooterManager));
-    logitech.povUp().onTrue(new InstantCommand(  () -> shooterManager.toggleShooter(),       shooterManager));
+    controller.povLeft().onTrue(new InstantCommand(() -> spindexerManager.toggleSpin(),          spindexerManager));
+    controller.povDown().onTrue(new InstantCommand(() -> preShooterManager.toggleManualFeed(),    preShooterManager));
+    controller.povRight().onTrue(new InstantCommand(() -> preShooterManager.toggleReverseFeed(),  preShooterManager));
+    controller.povUp().onTrue(new InstantCommand(  () -> shooterManager.toggleShooter(),          shooterManager));
 
-    logitech.button(4)
+    // --- Logitech controller - Climber (no axis conflict) ---
+
+    new Trigger(() -> logitech.getR2Axis() > 0.04)
         .onTrue(new InstantCommand(() -> climberManager.setManual(), climberManager))
-        .whileTrue(new InstantCommand(() -> climberManager.setClimbManual(-0.3), climberManager))
+        .whileTrue(new RunCommand(() -> climberManager.setClimbManual(-0.3), climberManager))
         .onFalse(new InstantCommand(() -> climberManager.setStopManualClimb()));
 
-    logitech.button(1)
-        .whileTrue(new InstantCommand(() -> climberManager.setManual(), climberManager))
-        .whileTrue(new InstantCommand(() -> climberManager.setClimbManual(0.3), climberManager))
+    new Trigger(() -> logitech.getL2Axis() > 0.04)
+        .onTrue(new InstantCommand(() -> climberManager.setManual(), climberManager))
+        .whileTrue(new RunCommand(() -> climberManager.setClimbManual(0.3), climberManager))
         .onFalse(new InstantCommand(() -> climberManager.setStopManualClimb()));
   }
 
@@ -164,7 +155,7 @@ public class RobotContainer {
         Commands.runOnce(() -> preShooterManager.stop()),
         Commands.runOnce(() -> spindexerManager.stop())
     );
-}
+  }
 
   public void periodic() {
     var stressData   = stressMonitor.generateData(drivebase);
@@ -177,7 +168,7 @@ public class RobotContainer {
 
     modePublisher.publishAim(aimLockBack.isActive() ? 1 : 0);
     modePublisher.publishAlign(
-    preShooterManager.getMode() == PreShooterManager.ControlMode.AUTO_DISTANCE ? 1 : 0);
+        preShooterManager.getMode() == PreShooterManager.ControlMode.AUTO_DISTANCE ? 1 : 0);
     modePublisher.publishShooterLime2Plus(shooterManager.isSpinning() ? 1 : 0);
     modePublisher.publishAimLime4(aimLockFront.isActive() ? 1 : 0);
     modePublisher.publishAlignPiece(alignWithPiece.isActive() ? 1 : 0);

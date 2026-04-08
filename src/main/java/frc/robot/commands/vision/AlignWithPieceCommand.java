@@ -36,21 +36,28 @@ public class AlignWithPieceCommand extends Command {
   @Override
   public void execute() {
 
-    if (!vision.hasBackTarget()) {
+    // Use the AI pipeline target, not the AprilTag pipeline.
+    // hasBackTarget() requires an allowed AprilTag — which is never present
+    // during piece alignment — so checking hasAiTarget() is correct here.
+    if (!vision.hasAiTarget()) {
       swerve.stop();
       return;
     }
 
     double rot =
         swerve.getHeadingPID().calculate(
-            vision.getBackTxRad(),
+            vision.getAiTxRad(),   // was: getBackTxRad() — wrong pipeline
             0.0
         );
 
-    double forward =
-        Constants.K_AUTO_PIECE_FORWARD *
-        (Constants.TA_TARGET -
-         vision.getBackDistanceToTag());
+    // getAiDistance() returns the Python-estimated distance to the game piece.
+    // Previously getBackDistanceToTag() was used here, which requires a valid
+    // AprilTag target and returns Double.MAX_VALUE when there is none, making
+    // the forward speed calculation blow up to MAX_SPEED.
+    double aiDist = vision.getAiDistance();
+    double forward = Double.isFinite(aiDist)
+        ? Constants.K_AUTO_PIECE_FORWARD * (Constants.TA_TARGET - aiDist)
+        : 0.0;
 
     forward = MathUtil.clamp(
         forward,

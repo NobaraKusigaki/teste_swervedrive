@@ -17,7 +17,7 @@ public class RobotContextProvider {
     public RobotContextProvider() {
         var nt = NetworkTableInstance.getDefault();
         batteryVoltageSub  = nt.getDoubleTopic("/Robot/BatteryVoltage").subscribe(12.0);
-        stressScoreSub     = nt.getDoubleTopic("/Robot/StressScore").subscribe(0.0);
+        stressScoreSub     = nt.getDoubleTopic("/Robot/StressScore").subscribe(0.0); 
         stressLevelSub     = nt.getStringTopic("/Robot/StressLevel").subscribe("LOW");
         speedLimitedSub    = nt.getBooleanTopic("/Robot/SpeedLimited").subscribe(false);
         hasPieceSub        = nt.getBooleanTopic("/Mechanisms/HasGamePiece").subscribe(false);

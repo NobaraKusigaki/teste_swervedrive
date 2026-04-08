@@ -41,7 +41,7 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public void setpower(){
-        neoMotor.set(0.61);
+        neoMotor.set(0.8);
     }
 
    

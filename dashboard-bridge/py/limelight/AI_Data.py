@@ -172,7 +172,7 @@ def infer_one_frame(model: YOLO, frame):
     return tx_deg, ta, bbox
 
 
-def update_latest(tx, ta, bbox):
+def update_latest(tx, ta, bbox, frame_height: int):
     now = time.time()
     with state_lock:
         latest["tx"] = tx
@@ -188,13 +188,20 @@ def update_latest(tx, ta, bbox):
         rio2wpi_ta(ta)
         rio2wpi_bbox(bbox)
 
-        # Estimate distance from bbox height (tune PIECE_REAL_HEIGHT_M and FOCAL_PX for your setup)
+        # Estimate distance from bbox height using the pinhole model:
+        #   distance = (real_height_m * focal_length_px) / bbox_height_px
+        # focal_length_px is derived from VFOV and the actual frame height,
+        # so this works correctly regardless of capture resolution.
+        # Previously frame height was hardcoded to 480, which gave wrong
+        # distances whenever the camera returned a different resolution.
         PIECE_REAL_HEIGHT_M = 0.30  # approximate game piece height in meters — tune this!
+        LIMELIGHT_VFOV_DEG  = 49.7  # vertical FOV for Limelight — adjust if needed
+
         x1, y1, x2, y2 = bbox
         bbox_height_px = max(1, y2 - y1)
-        # focal length in pixels estimated from HFOV and frame height
-        # using same focal_px as infer_one_frame but for vertical axis
-        distance = (PIECE_REAL_HEIGHT_M * 480) / bbox_height_px  # assumes 480px frame height
+
+        focal_px_v = (frame_height / 2.0) / math.tan(math.radians(LIMELIGHT_VFOV_DEG / 2.0))
+        distance = (PIECE_REAL_HEIGHT_M * focal_px_v) / bbox_height_px
         rio2wpi_distance(distance)
 
 
@@ -226,7 +233,9 @@ def main_loop():
             if img is not None:
                 last_infer = now
                 tx, ta, bbox = infer_one_frame(model, img)
-                update_latest(tx, ta, bbox)
+                # Pass actual frame height so distance estimate is resolution-independent
+                frame_h = img.shape[0]
+                update_latest(tx, ta, bbox, frame_h)
 
         time.sleep(0.001)
 

@@ -128,8 +128,15 @@
   </div>
 
   <!-- JS -->
+  <!-- ws.js must be loaded first so the shared socket is ready before
+       arrow_nt.js and modes.js register their onNTMessage handlers. -->
+  <script type="module" src="./js/ws.js"></script>
   <script type="module" src="./js/limelight/arrow_nt.js"></script>
-  <script src="./js/limelight/modes.js"></script>
+  <!-- Changed from plain <script> to type="module" so that modes.js can
+       use ES module imports (import { onNTMessage } from "../ws.js").
+       Previously this was a plain script, which silently broke the import
+       and caused modes.js to open its own duplicate WebSocket connection. -->
+  <script type="module" src="./js/limelight/modes.js"></script>
 
 </body>
 </html>
